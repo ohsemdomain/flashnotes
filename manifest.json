@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Flash Notes Extension",
+  "version": "1.0",
+  "description": "Create and manage multiple notes with tags",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "flash-notes-icon.png",
+      "48": "flash-notes-icon.png",
+      "128": "flash-notes-icon.png"
+    }
+  },
+  "permissions": [
+    "storage"
+  ],
+  "icons": {
+    "16": "flash-notes-icon.png",
+    "48": "flash-notes-icon.png",
+    "128": "flash-notes-icon.png"
+  }
+}

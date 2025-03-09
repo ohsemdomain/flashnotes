@@ -1,0 +1,918 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+body {
+  width: 800px;
+  height: 500px;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 250px;
+  height: 100%;
+  background-color: #f5f5f5;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.sidebar-header {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.sidebar-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.search-container {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+#search-notes {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.notes-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.note-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.note-item.active {
+  background-color: #e6f2ff;
+}
+
+.note-item h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-item p {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-item .note-tags {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.note-item .tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  /* Background color is set in JS based on the tag's color */
+}
+
+/* Sidebar footer with settings button */
+.sidebar-footer {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  text-align: center;
+}
+
+#settings-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+#settings-button:hover {
+  background-color: #e0e0e0;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  color: #555;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.note-header {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+#note-title {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 5px;
+  border: 1px solid transparent;
+  width: 70%;
+}
+
+#note-title:focus {
+  border-color: #ddd;
+  outline: none;
+}
+
+.note-tools {
+  position: relative;
+  display: flex;
+  gap: 5px;
+}
+#tag-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    border-radius: 4px;
+}
+#note-menu-button {
+    font-size: 18px;
+    padding: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #555;
+     border-radius: 4px;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 10;
+  padding: 5px 0;
+}
+
+.dropdown-menu.active {
+  display: block;
+}
+
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown-menu button:hover {
+  background-color: #f5f5f5;
+  color: #007bff;
+}
+
+.dropdown-menu button#delete-note {
+  color: #dc3545;
+}
+
+.dropdown-menu button#delete-note:hover {
+  background-color: #ffebee;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #ddd;
+  margin: 5px 0;
+}
+
+/* Tag dropdown special styles */
+#tag-dropdown {
+  right: 0;
+  top: 40px;
+  position: fixed;
+  max-height: 400px;
+  width: 220px;
+  z-index: 1000;
+}
+
+.tag-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.tag-item:hover {
+  background-color: #f5f5f5;
+}
+
+.tag-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+#tags-dropdown-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#manage-tags-btn {
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.tags-container {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+}
+
+#tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+
+.tag {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  /* Background color is set in JS based on the tag's color */
+}
+
+.tag span {
+  margin-right: 5px;
+}
+
+.tag .remove-tag {
+  cursor: pointer;
+  font-size: 10px;
+}
+
+/* For the all tags panel when clicking tag button */
+.tags-panel {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  z-index: 1000;
+  display: none;
+}
+
+.tags-panel.active {
+  display: block;
+}
+
+.tags-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.tags-panel-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tags-panel-close {
+  cursor: pointer;
+  font-size: 16px;
+  color: #999;
+}
+
+.tags-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#note-content {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#note-content:focus {
+  outline: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  color: #007bff;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-backdrop.active {
+  display: flex;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  max-width: 90vw;
+  z-index: 101;
+  display: none;
+}
+
+.modal.active {
+  display: block;
+}
+
+.settings-modal-content {
+  width: 500px;
+  max-width: 90vw;
+}
+
+.modal-content {
+  width: 100%;
+  position: relative;
+}
+
+.modal-header {
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 15px;
+  border-top: 1px solid #ddd;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-close {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.tag-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.color-option.selected {
+  border-color: #333;
+}
+
+#create-tag-button,
+#update-tag-button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#create-tag-button:hover,
+#update-tag-button:hover {
+  background-color: #0069d9;
+}
+
+#delete-tag-button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#delete-tag-button:hover {
+  background-color: #c82333;
+}
+
+/* Tabs in Settings */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  background-color: #f8f8f8;
+}
+
+.tab-button {
+  padding: 10px 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-button:hover {
+  color: #333;
+}
+
+.tab-button.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+}
+
+.tab-content {
+  padding: 15px;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/* Tags Manager */
+.tags-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.tags-manager-header h4 {
+  margin: 0;
+  font-size: 15px;
+}
+
+#add-tag-manager-btn {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+#add-tag-manager-btn:hover {
+  background-color: #e5e5e5;
+}
+
+.tags-list-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tag-manager-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.tag-info {
+  display: flex;
+  align-items: center;
+}
+
+.tag-color-preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.tag-edit-button {
+  color: #666;
+  font-size: 14px;
+}
+
+.tag-edit-button:hover {
+  color: #007bff;
+}
+
+/* Placeholder text */
+.placeholder-text {
+  color: #888;
+  font-style: italic;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.button-group button {
+  padding: 8px 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.button-group button:hover {
+  background-color: #e5e5e5;
+  color: #333;
+}
+
+.empty-tags-message {
+  padding: 15px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+.create-new-tag-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.create-new-tag-item:hover {
+  background-color: #f0f8ff;
+}
+
+.create-new-tag-item span {
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+/* Save indicator */
+.save-indicator {
+  padding: 6px 10px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #ddd;
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#save-status {
+  transition: opacity 0.3s ease;
+}
+
+#save-status.saving {
+  color: #007bff;
+}
+
+#save-status.saved {
+  color: #28a745;
+  opacity: 1;
+}
+
+#save-status.idle {
+  opacity: 0.7;
+}
+
+/* Delete button styling */
+#delete-note-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  border-radius: 4px;
+}
+
+#delete-note-btn:hover {
+  background-color: #fee;
+  color: #dc3545;
+}
+
+.delete-icon {
+  transition: color 0.2s ease;
+}
+
+/* Delete confirmation modal styling */
+.delete-warning {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.delete-button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Format toolbar */
+.format-toolbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.format-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 5px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #555;
+}
+
+.format-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.format-btn.active {
+  background-color: #e6f2ff;
+  color: #007bff;
+}
+
+/* Tag and delete buttons in toolbar */
+#tag-button,
+#delete-note-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 5px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #555;
+}
+
+#tag-button {
+  position: relative;
+}
+
+#tag-button:hover {
+  background-color: #f0f0f0;
+  color: #007bff;
+}
+
+#delete-note-btn:hover {
+  background-color: #fee;
+  color: #dc3545;
+}
+
+/* Note content area with title */
+.note-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.title-area {
+  padding: 20px 15px 10px 15px;
+  font-size: 24px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  min-height: 36px;
+}
+
+.title-area:empty::before {
+  content: attr(placeholder);
+  color: #aaa;
+  font-weight: 500;
+}
+
+.content-divider {
+  height: 1px;
+  background-color: #f0f0f0;
+  margin: 0 15px;
+}
+
+.note-content-area {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 200px;
+}
+
+.note-content-area:empty::before {
+  content: attr(placeholder);
+  color: #aaa;
+}
+
+/* Save indicator at the bottom */
+.save-indicator {
+  padding: 6px 10px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #ddd;
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#save-status {
+  transition: opacity 0.3s ease;
+}
+
+#save-status.saving {
+  color: #007bff;
+}
+
+#save-status.saved {
+  color: #28a745;
+  opacity: 1;
+}
+
+#save-status.idle {
+  opacity: 0.7;
+}

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <title>Flash Notes</title>
+
+</head>
+
+<body>
+  <div class="container">
+    <!-- Sidebar for notes list -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Notes</h2>
+        <button id="new-note">+</button>
+      </div>
+
+      <!-- Search bar -->
+      <div class="search-container">
+        <input type="text" id="search-notes" placeholder="Search notes...">
+      </div>
+
+      <!-- Notes list -->
+      <div class="notes-list" id="notes-list"></div>
+
+      <!-- Settings button (sticky at the bottom) -->
+      <div class="sidebar-footer">
+        <button id="settings-button" title="Settings">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="main-content">
+      <!-- Format toolbar -->
+      <div class="format-toolbar">
+        <div class="toolbar-left">
+          <button class="format-btn" id="format-bold" title="Bold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+              <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+            </svg>
+          </button>
+          <button class="format-btn" id="format-italic" title="Italic">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <line x1="19" y1="4" x2="10" y2="4"></line>
+              <line x1="14" y1="20" x2="5" y2="20"></line>
+              <line x1="15" y1="4" x2="9" y2="20"></line>
+            </svg>
+          </button>
+          <button class="format-btn" id="format-underline" title="Underline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+              <line x1="4" y1="21" x2="20" y2="21"></line>
+            </svg>
+          </button>
+          <button class="format-btn" id="format-list" title="Bulleted List">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="toolbar-right">
+          <!-- Tag button -->
+          <button id="tag-button" title="Tags">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+              <line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+          </button>
+          <!-- Delete button -->
+          <button id="delete-note-btn" title="Delete Note">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon delete-icon">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Tag dropdown menu -->
+        <div class="dropdown-menu" id="tag-dropdown">
+          <!-- Tags will be loaded here dynamically -->
+          <div id="tags-dropdown-list"></div>
+          <div class="dropdown-divider"></div>
+          <button id="manage-tags-btn">Manage Tags</button>
+        </div>
+      </div>
+
+      <!-- Tags section -->
+      <div class="tags-container">
+        <div id="tags-list"></div>
+      </div>
+
+      <!-- Note content area with inline title -->
+      <div class="note-content-wrapper">
+        <div class="title-area" contenteditable="true" id="note-title" placeholder="Untitled Note"></div>
+        <div class="content-divider"></div>
+        <div class="note-content-area" contenteditable="true" id="note-content"
+          placeholder="Start typing your note here..."></div>
+      </div>
+
+      <!-- Save indicator -->
+      <div class="save-indicator" id="save-indicator">
+        <span id="save-status">All changes saved</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create New Tag Modal -->
+  <div id="create-tag-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create New Tag</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="new-tag-name">Tag Name</label>
+          <input type="text" id="new-tag-name" placeholder="Enter tag name">
+        </div>
+        <div class="form-group">
+          <label>Tag Color</label>
+          <div class="tag-colors">
+            <button class="color-option" data-color="#e4e4e4" style="background-color: #e4e4e4;"></button>
+            <button class="color-option" data-color="#ffcccb" style="background-color: #ffcccb;"></button>
+            <button class="color-option" data-color="#c1e1c1" style="background-color: #c1e1c1;"></button>
+            <button class="color-option" data-color="#a7c7e7" style="background-color: #a7c7e7;"></button>
+            <button class="color-option" data-color="#ffec99" style="background-color: #ffec99;"></button>
+            <button class="color-option" data-color="#c3b1e1" style="background-color: #c3b1e1;"></button>
+            <button class="color-option" data-color="#ffb347" style="background-color: #ffb347;"></button>
+            <button class="color-option" data-color="#87ceeb" style="background-color: #87ceeb;"></button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="create-tag-button">Create Tag</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content settings-modal-content">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="tabs">
+        <button class="tab-button active" data-tab="tags">Tags</button>
+        <button class="tab-button" data-tab="backup">Backup</button>
+        <button class="tab-button" data-tab="appearance">Appearance</button>
+      </div>
+      <div class="tab-content">
+        <!-- Tags Management Tab -->
+        <div class="tab-pane active" id="tags-tab">
+          <div class="tags-manager">
+            <div class="tags-manager-header">
+              <h4>Manage Tags</h4>
+              <button id="add-tag-manager-btn">+ Add Tag</button>
+            </div>
+            <div class="tags-list-manager" id="tags-manager-list"></div>
+          </div>
+        </div>
+
+        <!-- Backup Tab -->
+        <div class="tab-pane" id="backup-tab">
+          <div class="backup-options">
+            <h4>Backup & Restore</h4>
+            <p>Export your notes or restore from a previous backup.</p>
+            <div class="button-group">
+              <button id="export-notes-btn">Export Notes</button>
+              <button id="import-notes-btn">Import Notes</button>
+            </div>
+            <p class="placeholder-text">This feature will be available soon.</p>
+          </div>
+        </div>
+
+        <!-- Appearance Tab -->
+        <div class="tab-pane" id="appearance-tab">
+          <div class="appearance-options">
+            <h4>Appearance</h4>
+            <p>Customize the look and feel of your notepad.</p>
+            <div class="placeholder-text">
+              Theme options will be available in future updates.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Tag Modal -->
+  <div id="edit-tag-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Tag</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="edit-tag-name">Tag Name</label>
+          <input type="text" id="edit-tag-name" placeholder="Enter tag name">
+          <input type="hidden" id="edit-tag-original-name">
+        </div>
+        <div class="form-group">
+          <label>Tag Color</label>
+          <div class="tag-colors" id="edit-tag-colors">
+            <button class="color-option" data-color="#e4e4e4" style="background-color: #e4e4e4;"></button>
+            <button class="color-option" data-color="#ffcccb" style="background-color: #ffcccb;"></button>
+            <button class="color-option" data-color="#c1e1c1" style="background-color: #c1e1c1;"></button>
+            <button class="color-option" data-color="#a7c7e7" style="background-color: #a7c7e7;"></button>
+            <button class="color-option" data-color="#ffec99" style="background-color: #ffec99;"></button>
+            <button class="color-option" data-color="#c3b1e1" style="background-color: #c3b1e1;"></button>
+            <button class="color-option" data-color="#ffb347" style="background-color: #ffb347;"></button>
+            <button class="color-option" data-color="#87ceeb" style="background-color: #87ceeb;"></button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="update-tag-button">Update Tag</button>
+        <button id="delete-tag-button" class="delete-button">Delete Tag</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-confirm-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Delete Note</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this note?</p>
+        <p class="delete-warning">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-delete-btn" class="cancel-button">Cancel</button>
+        <button id="confirm-delete-btn" class="delete-button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="modal.js"></script>
+  <script src="database.js"></script>
+  <script src="tags.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
