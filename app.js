@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Register modals
         modalManager.register('settings-modal');
         modalManager.register('delete-confirm-modal');
+        modalManager.register('create-tag-modal');
+        modalManager.register('edit-tag-modal');
 
         await loadNotes();
 
@@ -82,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = note.title || 'Untitled Note';
 
             // Get preview from the content
-            const content = note.content || '';
-            const preview = content.substring(0, 60) + (content.length > 60 ? '...' : '');
+            // const content = note.content || '';
+            // const preview = content.substring(0, 60) + (content.length > 60 ? '...' : '');
             const date = new Date(note.updatedAt).toLocaleDateString();
 
             let tagsHTML = '';
@@ -93,8 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             noteElement.innerHTML = `
-          <h3>${title}</h3>
-          <p>${preview}</p>
+          <h3>${title}</h3>        
           <div class="note-tags">
             ${tagsHTML}
           </div>
