@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <title>Flash Notes</title>
 
@@ -106,19 +109,15 @@
         </div>
       </div>
 
-      <!-- Tags section -->
-      <div class="tags-container">
-        <div id="tags-list"></div>
-      </div>
-
       <!-- Note content area with inline title -->
       <div class="note-content-wrapper">
         <div class="title-area" contenteditable="true" id="note-title" placeholder="Title"></div>
         <div class="note-content-area" contenteditable="true" id="note-content"></div>
       </div>
 
-      <!-- Save indicator -->
+      <!-- Tags list and Save indicator -->
       <div class="save-indicator" id="save-indicator">
+        <div id="tags-list"></div>
         <span id="save-status">All changes saved</span>
       </div>
     </div>

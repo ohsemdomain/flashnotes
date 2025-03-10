@@ -82,25 +82,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Get title from the first line of content or use "Untitled Note"
             const title = note.title || 'Untitled Note';
-
-            // Get preview from the content
-            // const content = note.content || '';
-            // const preview = content.substring(0, 60) + (content.length > 60 ? '...' : '');
-            const date = new Date(note.updatedAt).toLocaleDateString();
+            
+            const updatedDate = new Date(note.updatedAt);
+            const day = String(updatedDate.getDate()).padStart(2, '0');
+            const month = String(updatedDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const year = updatedDate.getFullYear();
+            const date = `${day}.${month}.${year}`;
 
             let tagsHTML = '';
             for (const tagName of note.tags) {
                 const tagColor = await db.getTagColor(tagName);
-                tagsHTML += `<span class="tag" style="background-color: ${tagColor}">${tagName}</span>`;
+                tagsHTML += `<span class="tag-dot" style="background-color: ${tagColor}"></span>`;
             }
 
             noteElement.innerHTML = `
-          <h3>${title}</h3>        
-          <div class="note-tags">
-            ${tagsHTML}
-          </div>
-          <small>${date}</small>
-        `;
+  <h3>${title}</h3>
+  <div class="note-item-footer">
+    <small class="note-date">${date}</small>
+    <div class="note-tags-dots">${tagsHTML}</div>
+  </div>
+`;
 
             noteElement.addEventListener('click', () => selectNote(note.id));
             notesList.appendChild(noteElement);

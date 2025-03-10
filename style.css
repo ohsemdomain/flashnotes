@@ -2,7 +2,9 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "Inter Tight", sans-serif;
+  font-optical-sizing: auto;
+  letter-spacing: 0px;
 }
 
 body {
@@ -21,7 +23,7 @@ body {
 .sidebar {
   width: 200px;
   height: 100%;
-  background-color: #333;
+  background-color: oklch(0.147 0.004 49.25);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -33,7 +35,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #555;
+  border-bottom: 1px solid oklch(0.268 0.007 34.298);
   gap: 8px;
 }
 
@@ -44,15 +46,15 @@ button#new-note {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #bbd9ff;
-  color: #2a6cff;
+  background-color: oklch(0.444 0.011 73.639);
+  color: oklch(0.709 0.01 56.259);
   transition: all 0.2s ease;
   border: none;
   font-size: 18px;
 }
 
 button#new-note:hover {
-  background-color: #aed2ff;
+  background-color: oklch(0.374 0.01 67.558);
 }
 
 #search-notes {
@@ -62,16 +64,17 @@ button#new-note:hover {
   background-repeat: no-repeat;
   background-position: 6px center;
   background-size: 14px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid oklch(0.374 0.01 67.558);
   border-radius: 4px;
-  font-size: 11px;
-  background-color: white;
+  color: oklch(0.709 0.01 56.259);
+  font-size: 12px;
+  background-color: oklch(0.216 0.006 56.043);
   transition: all 0.2s ease;
 }
 
 #search-notes:focus {
   outline: none;
-  border-color: #b1b1b1;
+  border-color: oklch(0.444 0.011 73.639);
 }
 
 .notes-list {
@@ -80,27 +83,32 @@ button#new-note:hover {
 }
 
 .note-item {
-  padding: 8px;
-  border-bottom: 1px solid #555;
+  padding: 8px 10px;
+  border-bottom: 1px solid oklch(0.268 0.007 34.298);
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .note-item.active {
-  background-color: #666;
+  background-color: oklch(0.268 0.007 34.298);
 }
 
 .note-item:hover {
-  background-color: #777;
+  background-color: oklch(0.268 0.007 34.298);
 }
 
 .note-item h3 {
   font-size: 12px;
-  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #fff
+  color: #fff;
+  margin-bottom: 1px;
+  width: 95%;
+  letter-spacing: 0.5px;
+  font-weight: 300;
 }
 
 .note-item p {
@@ -112,45 +120,67 @@ button#new-note:hover {
 }
 
 .note-item .note-tags {
-  margin-top: 5px;
+  margin-top: 0;
+}
+
+.note-item .tag-dot {
+  width: 10px;
+  height: 6px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.note-item .note-tags-dots {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
+  justify-content: flex-end;
 }
 
 .note-item .tag {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 10px;
-  /* Background color is set in JS based on the tag's color */
+  display: none;
+}
+
+.note-item .note-date {
+  font-size: 10px;
+  color: #bbb;
+  letter-spacing: 0.5px;
+  font-weight: 300;
+}
+
+.note-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
 }
 
 /* Sidebar footer with settings button */
 .sidebar-footer {
-  padding: 10px;
-  border-top: 1px solid #555;
+  padding: 8px;
+  height: 40px;
+  border-top: 1px solid oklch(0.268 0.007 34.298);
   text-align: center;
 }
 
 #settings-button {
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #555;
+  background-color: oklch(0.374 0.01 67.558);
   transition: background-color 0.2s;
 }
 
 #settings-button:hover {
-  background-color: #777;
+  background-color: oklch(0.268 0.007 34.298);
 }
 
 #settings-button .icon {
-  width: 14px;
-  height: 14px;
-  color: #a5a5a5;
+  width: 12px;
+  height: 12px;
+  color: oklch(0.869 0.005 56.366);
 }
 
 .icon {
@@ -296,13 +326,6 @@ button#new-note:hover {
   font-weight: 500;
 }
 
-.tags-container {
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #ddd;
-}
-
 #tags-list {
   display: flex;
   flex-wrap: wrap;
@@ -312,20 +335,26 @@ button#new-note:hover {
 
 .tag {
   font-size: 12px;
-  padding: 3px 8px;
-  border-radius: 10px;
+  font-weight: 500;
+  padding: 4px 4px 4px 12px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  /* Background color is set in JS based on the tag's color */
 }
 
 .tag span {
-  margin-right: 5px;
+  margin-right: 6px;
 }
 
 .tag .remove-tag {
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.remove-tag:hover {
+  opacity: 1;
 }
 
 /* For the all tags panel when clicking tag button */
@@ -801,8 +830,12 @@ button:hover {
   height: 50px;
   justify-content: space-between;
   padding: 8px 10px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: oklch(0.97 0.001 106.424);
+  border-bottom: 1px solid oklch(0.923 0.003 48.717);
+}
+
+.format-toolbar .icon {
+  color: oklch(0.444 0.011 73.639);
 }
 
 .toolbar-left,
@@ -820,20 +853,20 @@ button:hover {
   height: 32px;
   padding: 5px;
   background: none;
-  border: none;
+  border: 1px solid oklch(0.923 0.003 48.717);
   border-radius: 4px;
   cursor: pointer;
-  color: #555;
+  color: oklch(0.444 0.011 73.639);
 }
 
 .format-btn:hover {
   background-color: #f0f0f0;
-  color: #333;
+  color: oklch(0.709 0.01 56.259);
 }
 
 .format-btn.active {
   background-color: #e6f2ff;
-  color: #007bff;
+  color: oklch(0.709 0.01 56.259);
 }
 
 /* Tag and delete buttons in toolbar */
@@ -846,7 +879,7 @@ button:hover {
   height: 32px;
   padding: 5px;
   background: none;
-  border: none;
+  border: 1px solid oklch(0.923 0.003 48.717);
   border-radius: 4px;
   cursor: pointer;
   color: #555;
@@ -863,6 +896,7 @@ button:hover {
 
 #delete-note-btn:hover {
   background-color: #fee;
+  border: 1px solid oklch(0.892 0.058 10.001);
   color: #dc3545;
 }
 
@@ -908,8 +942,9 @@ button:hover {
 /* Save indicator at the bottom */
 .save-indicator {
   padding: 6px 10px;
-  background-color: #f5f5f5;
-  border-top: 1px solid #ddd;
+  height: 40px;
+  background-color: oklch(0.97 0.001 106.424);
+  border-top: 1px solid oklch(0.923 0.003 48.717);
   font-size: 12px;
   color: #666;
   display: flex;
