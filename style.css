@@ -144,44 +144,34 @@ body {
   border-bottom: 1px solid #ddd;
 }
 
-#note-title {
-  font-size: 16px;
-  font-weight: 600;
-  padding: 5px;
-  border: 1px solid transparent;
-  width: 70%;
-}
-
-#note-title:focus {
-  border-color: #ddd;
-  outline: none;
-}
-
 .note-tools {
   position: relative;
   display: flex;
   gap: 5px;
 }
+
 #tag-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #555;
-    border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  border-radius: 4px;
 }
+
 #note-menu-button {
-    font-size: 18px;
-    padding: 5px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: #555;
-     border-radius: 4px;
+  font-size: 18px;
+  padding: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #555;
+  border-radius: 4px;
 }
+
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -851,25 +841,19 @@ button:hover {
   overflow-y: auto;
 }
 
-.title-area {
-  padding: 20px 15px 10px 15px;
-  font-size: 24px;
-  font-weight: 500;
+#note-title {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 10px 2px;
   border: none;
   outline: none;
-  min-height: 36px;
+  width: 70%;
 }
 
 .title-area:empty::before {
   content: attr(placeholder);
   color: #aaa;
-  font-weight: 500;
-}
-
-.content-divider {
-  height: 1px;
-  background-color: #f0f0f0;
-  margin: 0 15px;
+  font-weight: 600;
 }
 
 .note-content-area {
