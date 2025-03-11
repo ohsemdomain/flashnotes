@@ -213,17 +213,6 @@ class TagManager {
                 this.tagsDropdownList.appendChild(tagElement);
             }
         }
-
-        // Add "Create New Tag" option
-        const createNewTagElement = document.createElement('div');
-        createNewTagElement.className = 'create-new-tag-item';
-        createNewTagElement.innerHTML = '<span>+</span> Create New Tag';
-        createNewTagElement.addEventListener('click', () => {
-            this.closeTagDropdown();
-            this.showCreateTagModal();
-        });
-
-        this.tagsDropdownList.appendChild(createNewTagElement);
     }
 
     // Toggle a tag on the current note (add if not present, remove if present)
