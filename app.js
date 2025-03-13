@@ -20,12 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Action buttons
     const newNoteBtn = document.getElementById('new-note');
     const deleteNoteBtn = document.getElementById('delete-note-btn');
-    const settingsButton = document.getElementById('settings-button');
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
     const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-
-    // Tab elements
-    const tabButtons = document.querySelectorAll('.tab-button');
 
     // Initialize the tag manager
     tagManager = new TagManager(db);
@@ -39,11 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     async function initApp() {
-        // Register modals
-        modalManager.register('settings-modal');
+        // Register modals - update to register the new separate modals
         modalManager.register('delete-confirm-modal');
         modalManager.register('create-tag-modal');
         modalManager.register('edit-tag-modal');
+        modalManager.register('tags-manager-modal');
+        modalManager.register('backup-manager-modal');
+        modalManager.register('appearance-manager-modal');
 
         await loadNotes();
 
@@ -82,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Get title from the first line of content or use "Untitled Note"
             const title = note.title || 'Untitled Note';
-            
+
             const updatedDate = new Date(note.updatedAt);
             const day = String(updatedDate.getDate()).padStart(2, '0');
             const month = String(updatedDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
@@ -233,8 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
         modalManager.closeActiveModal();
     }
 
-    function showSettingsModal() {
-        tagManager.showSettingsModal();
+    // New manager functions
+    function openTagsManager() {
+        modalManager.open('tags-manager-modal');
+        tagManager.loadTagsManager();
+    }
+
+    function openBackupManager() {
+        modalManager.open('backup-manager-modal');
+    }
+
+    function openAppearanceManager() {
+        modalManager.open('appearance-manager-modal');
     }
 
     function setupEventListeners() {
@@ -249,13 +257,16 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteNoteBtn.addEventListener('click', showDeleteConfirmation);
         confirmDeleteBtn.addEventListener('click', deleteCurrentNote);
         cancelDeleteBtn.addEventListener('click', () => modalManager.closeActiveModal());
-        settingsButton.addEventListener('click', showSettingsModal);
 
-        // Tab switching
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                tagManager.switchTab(button.dataset.tab);
-            });
+        // Manager buttons in the sidebar footer
+        document.getElementById('tags-manager-button').addEventListener('click', openTagsManager);
+        document.getElementById('backup-manager-button').addEventListener('click', openBackupManager);
+        document.getElementById('appearance-manager-button').addEventListener('click', openAppearanceManager);
+
+        // Add tag button inside Tags Manager modal
+        document.getElementById('add-tag-manager-btn').addEventListener('click', () => {
+            modalManager.closeActiveModal(); // Close tags manager modal
+            tagManager.showCreateTagModal(); // Open create tag modal
         });
 
         // Content change events

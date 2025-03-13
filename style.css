@@ -154,33 +154,36 @@ button#new-note:hover {
   margin-top: 2px;
 }
 
-/* Sidebar footer with settings button */
+/* Updated sidebar footer with three buttons */
 .sidebar-footer {
   padding: 8px;
   height: 40px;
   border-top: 1px solid oklch(0.268 0.007 34.298);
-  text-align: center;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
-#settings-button {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+.sidebar-footer button {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: oklch(0.216 0.006 56.043);
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.sidebar-footer button:hover {
   background-color: oklch(0.374 0.01 67.558);
-  transition: background-color 0.2s;
 }
 
-#settings-button:hover {
-  background-color: oklch(0.268 0.007 34.298);
-}
-
-#settings-button .icon {
-  width: 12px;
-  height: 12px;
-  color: oklch(0.869 0.005 56.366);
+.sidebar-footer .icon {
+  width: 14px;
+  height: 14px;
+  color: oklch(0.709 0.01 56.259);
 }
 
 .icon {
@@ -454,7 +457,7 @@ button:hover {
   background-color: white;
   border-radius: 6px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  width: 400px;
+  /* width: 400px; */
   max-width: 90vw;
   z-index: 101;
   display: none;
@@ -464,7 +467,10 @@ button:hover {
   display: block;
 }
 
-.settings-modal-content {
+/* Individual modal sizing */
+#tags-manager-modal .modal-content,
+#backup-manager-modal .modal-content,
+#appearance-manager-modal .modal-content {
   width: 500px;
   max-width: 90vw;
 }
@@ -583,42 +589,58 @@ button:hover {
   background-color: #c82333;
 }
 
-/* Tabs in Settings */
-.tabs {
+/* Placeholder text */
+.placeholder-text {
+  color: #888;
+  font-style: italic;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.button-group {
   display: flex;
-  border-bottom: 1px solid #ddd;
-  background-color: #f8f8f8;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-.tab-button {
-  padding: 10px 15px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
+.button-group button {
+  padding: 8px 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
   color: #666;
-  border-bottom: 2px solid transparent;
 }
 
-.tab-button:hover {
+.button-group button:hover {
+  background-color: #e5e5e5;
   color: #333;
 }
 
-.tab-button.active {
-  color: #007bff;
-  border-bottom: 2px solid #007bff;
-}
-
-.tab-content {
+.empty-tags-message {
   padding: 15px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
 }
 
-.tab-pane {
-  display: none;
+.create-new-tag-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #007bff;
+  font-weight: 500;
 }
 
-.tab-pane.active {
-  display: block;
+.create-new-tag-item:hover {
+  background-color: #f0f8ff;
+}
+
+.create-new-tag-item span {
+  margin-right: 5px;
+  font-weight: bold;
 }
 
 /* Tags Manager */
@@ -681,60 +703,6 @@ button:hover {
 
 .tag-edit-button:hover {
   color: #007bff;
-}
-
-/* Placeholder text */
-.placeholder-text {
-  color: #888;
-  font-style: italic;
-  margin-top: 15px;
-  text-align: center;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.button-group button {
-  padding: 8px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #666;
-}
-
-.button-group button:hover {
-  background-color: #e5e5e5;
-  color: #333;
-}
-
-.empty-tags-message {
-  padding: 15px;
-  text-align: center;
-  color: #888;
-  font-style: italic;
-}
-
-.create-new-tag-item {
-  display: flex;
-  align-items: center;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #007bff;
-  font-weight: 500;
-}
-
-.create-new-tag-item:hover {
-  background-color: #f0f8ff;
-}
-
-.create-new-tag-item span {
-  margin-right: 5px;
-  font-weight: bold;
 }
 
 /* Save indicator */

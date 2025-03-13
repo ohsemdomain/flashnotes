@@ -43,7 +43,8 @@ class TagManager {
         // Manage tags button
         this.manageTagsBtn.addEventListener('click', () => {
             this.closeTagDropdown();
-            this.showSettingsModal('tags');
+            modalManager.open('tags-manager-modal');
+            this.loadTagsManager();
         });
 
         // Add tag from manager
@@ -379,37 +380,6 @@ class TagManager {
                         option.classList.remove('selected');
                     }
                 });
-            }
-        });
-    }
-
-    // Show the settings modal with a specific tab active
-    showSettingsModal(tabName = 'tags') {
-        modalManager.open('settings-modal');
-        this.loadTagsManager();
-        this.switchTab(tabName);
-    }
-
-    // Switch to a different tab in the settings modal
-    switchTab(tabName) {
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabPanes = document.querySelectorAll('.tab-pane');
-
-        // Update tab buttons
-        tabButtons.forEach(button => {
-            if (button.dataset.tab === tabName) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
-            }
-        });
-
-        // Update tab panes
-        tabPanes.forEach(pane => {
-            if (pane.id === `${tabName}-tab`) {
-                pane.classList.add('active');
-            } else {
-                pane.classList.remove('active');
             }
         });
     }

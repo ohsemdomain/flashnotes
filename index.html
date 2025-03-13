@@ -25,15 +25,40 @@
       <!-- Notes list -->
       <div class="notes-list" id="notes-list"></div>
 
-      <!-- Settings button (sticky at the bottom) -->
+      <!-- Three independent manager buttons in the sidebar footer -->
       <div class="sidebar-footer">
-        <button id="settings-button" title="Settings">
+        <!-- Tags icon -->
+        <button id="tags-manager-button" title="Manage Tags">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+          </svg>
+        </button>
+        
+        <!-- Backup icon -->
+        <button id="backup-manager-button" title="Backup & Restore">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </button>
+        
+        <!-- Appearance icon -->
+        <button id="appearance-manager-button" title="Appearance Settings">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
             <circle cx="12" cy="12" r="3"></circle>
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-            </path>
+            <path d="M12 5v2"></path>
+            <path d="M12 17v2"></path>
+            <path d="M5 12H3"></path>
+            <path d="M21 12h-2"></path>
+            <path d="M5.63 5.63L4.22 4.22"></path>
+            <path d="M19.78 4.22L18.37 5.63"></path>
+            <path d="M19.78 19.78l-1.41-1.41"></path>
+            <path d="M4.22 19.78l1.41-1.41"></path>
           </svg>
         </button>
       </div>
@@ -154,51 +179,59 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
-  <div id="settings-modal" class="modal">
-    <div class="modal-content settings-modal-content">
+  <!-- Tags Manager Modal (replacing the Settings Modal) -->
+  <div id="tags-manager-modal" class="modal">
+    <div class="modal-content">
       <div class="modal-header">
-        <h3>Settings</h3>
+        <h3>Tags Manager</h3>
         <button class="modal-close">&times;</button>
       </div>
-      <div class="tabs">
-        <button class="tab-button active" data-tab="tags">Tags</button>
-        <button class="tab-button" data-tab="backup">Backup</button>
-        <button class="tab-button" data-tab="appearance">Appearance</button>
+      <div class="modal-body">
+        <div class="tags-manager">
+          <div class="tags-manager-header">
+            <h4>Manage Tags</h4>
+            <button id="add-tag-manager-btn">+ Add Tag</button>
+          </div>
+          <div class="tags-list-manager" id="tags-manager-list"></div>
+        </div>
       </div>
-      <div class="tab-content">
-        <!-- Tags Management Tab -->
-        <div class="tab-pane active" id="tags-tab">
-          <div class="tags-manager">
-            <div class="tags-manager-header">
-              <h4>Manage Tags</h4>
-              <button id="add-tag-manager-btn">+ Add Tag</button>
-            </div>
-            <div class="tags-list-manager" id="tags-manager-list"></div>
-          </div>
-        </div>
+    </div>
+  </div>
 
-        <!-- Backup Tab -->
-        <div class="tab-pane" id="backup-tab">
-          <div class="backup-options">
-            <h4>Backup & Restore</h4>
-            <p>Export your notes or restore from a previous backup.</p>
-            <div class="button-group">
-              <button id="export-notes-btn">Export Notes</button>
-              <button id="import-notes-btn">Import Notes</button>
-            </div>
-            <p class="placeholder-text">This feature will be available soon.</p>
+  <!-- Backup Manager Modal -->
+  <div id="backup-manager-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Backup & Restore</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="backup-options">
+          <h4>Backup & Restore</h4>
+          <p>Export your notes or restore from a previous backup.</p>
+          <div class="button-group">
+            <button id="export-notes-btn">Export Notes</button>
+            <button id="import-notes-btn">Import Notes</button>
           </div>
+          <p class="placeholder-text">This feature will be available soon.</p>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Appearance Tab -->
-        <div class="tab-pane" id="appearance-tab">
-          <div class="appearance-options">
-            <h4>Appearance</h4>
-            <p>Customize the look and feel of your notepad.</p>
-            <div class="placeholder-text">
-              Theme options will be available in future updates.
-            </div>
+  <!-- Appearance Manager Modal -->
+  <div id="appearance-manager-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Appearance Settings</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="appearance-options">
+          <h4>Appearance</h4>
+          <p>Customize the look and feel of your notepad.</p>
+          <div class="placeholder-text">
+            Theme options will be available in future updates.
           </div>
         </div>
       </div>
