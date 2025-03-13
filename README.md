@@ -39,18 +39,28 @@ Flash Notes is a Chrome extension that allows you to create and manage multiple 
 
 The codebase is organized in a modular structure for better maintainability:
 
+```
 /
   - app.js                  # Main application
+  - flash-notes-icon.png    # Extension icon
+  - index.html              # Main HTML file
+  - manifest.json           # Chrome extension manifest
+  - README.md               # Project documentation
+  - style.css               # Stylesheet
   /data
     - database.js           # Database operations
+  /helper
+    - noteHelper.js         # Note helper functions
+    - tagHelper.js          # Tag helper functions
   /services
     - noteService.js        # Note-related business logic
     - tagService.js         # Tag-related business logic
   /ui
-    - noteUI.js             # Note UI components
-    - tagUI.js              # Tag UI components
     - formatUI.js           # Formatting toolbar
     - modal.js              # Modal management
+    - noteUI.js             # Note UI components
+    - tagUI.js              # Tag UI components
+```
 
 ### Core Components
 
