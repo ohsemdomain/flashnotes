@@ -10,7 +10,6 @@
     rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <title>Flash Notes</title>
-
 </head>
 
 <body>
@@ -25,9 +24,9 @@
       <!-- Notes list -->
       <div class="notes-list" id="notes-list"></div>
 
-      <!-- Sidebar footer section in index.html -->
+      <!-- Sidebar footer section with utility buttons -->
       <div class="sidebar-footer">
-        <!-- Tags icon -->
+        <!-- Tags manager button -->
         <button id="tags-manager-button" title="Manage Tags">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
@@ -36,7 +35,7 @@
           </svg>
         </button>
 
-        <!-- Backup icon -->
+        <!-- Backup button -->
         <button id="backup-manager-button" title="Backup & Restore">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
@@ -46,7 +45,7 @@
           </svg>
         </button>
 
-        <!-- Appearance icon -->
+        <!-- Appearance settings button -->
         <button id="appearance-manager-button" title="Appearance Settings">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
@@ -62,7 +61,7 @@
           </svg>
         </button>
 
-        <!-- New Open in Browser button -->
+        <!-- Open in browser button -->
         <button id="open-extension-button" title="Open in Browser">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
@@ -79,6 +78,7 @@
       <!-- Format toolbar -->
       <div class="format-toolbar">
         <div class="toolbar-left">
+          <!-- Text formatting buttons -->
           <button class="format-btn" id="format-bold" title="Bold">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
@@ -189,7 +189,7 @@
     </div>
   </div>
 
-  <!-- Managers Modal -->
+  <!-- Tags Manager Modal -->
   <div id="tags-manager-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -300,9 +300,22 @@
     </div>
   </div>
 
-  <script src="modal.js"></script>
+  <!-- JavaScript Files -->
+
+  <!-- Database -->
   <script src="data/database.js"></script>
-  <script src="tags.js"></script>
+
+  <!-- Services -->
+  <script src="services/noteService.js"></script>
+  <script src="services/tagService.js"></script>
+
+  <!-- UI Components -->
+  <script src="ui/formatUI.js"></script>
+  <script src="ui/tagUI.js"></script>
+  <script src="ui/noteUI.js"></script>
+  <script src="ui/modal.js"></script>
+
+  <!-- Main Application -->
   <script src="app.js"></script>
 </body>
 

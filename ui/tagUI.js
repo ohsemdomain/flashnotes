@@ -1,8 +1,24 @@
-// tags.js - Centralizes all tag-related functionality
-
-class TagManager {
-    constructor(db) {
-        this.db = db;
+// /js/ui/tagUI.js
+/**
+ * Tag UI
+ * 
+ * Handles all tag-related UI functionality, including:
+ * - Tag dropdown interface
+ * - Tag selection and deselection
+ * - Tag creation, editing, and deletion UI
+ * - Tag color management UI
+ * - Tag visualization on notes
+ * 
+ * This component manages all user interactions with tags and communicates
+ * with the TagService to perform data operations.
+ */
+class TagUI {
+    /**
+     * Initialize the tag UI manager
+     * @param {TagService} tagService - The tag service instance
+     */
+    constructor(tagService) {
+        this.tagService = tagService;
         this.selectedTagColor = '#e4e4e4'; // Default tag color
         this.editingTagColor = '#e4e4e4'; // For tag editing
         this.currentNote = null;
@@ -11,7 +27,9 @@ class TagManager {
         this.initEventListeners();
     }
 
-    // Initialize DOM elements
+    /**
+     * Initialize DOM elements
+     */
     initElements() {
         // Buttons and interactive elements
         this.tagButton = document.getElementById('tag-button');
@@ -35,7 +53,9 @@ class TagManager {
         this.editColorOptions = document.querySelectorAll('#edit-tag-colors .color-option');
     }
 
-    // Set up event listeners for tag-related functionality
+    /**
+     * Set up event listeners for tag-related functionality
+     */
     initEventListeners() {
         // Tag dropdown toggle
         this.tagButton.addEventListener('click', () => this.toggleTagDropdown());
@@ -115,13 +135,18 @@ class TagManager {
         });
     }
 
-    // Set the current note for the tag manager
+    /**
+     * Set the current note for the tag manager
+     * @param {Object} note - The current note object
+     */
     setCurrentNote(note) {
         this.currentNote = note;
         this.renderNoteTags();
     }
 
-    // Toggle the tag dropdown menu
+    /**
+     * Toggle the tag dropdown menu
+     */
     toggleTagDropdown() {
         if (this.tagDropdown.classList.contains('active')) {
             this.closeTagDropdown();
@@ -130,7 +155,9 @@ class TagManager {
         }
     }
 
-    // Open the tag dropdown menu and load tags
+    /**
+     * Open the tag dropdown menu and load tags
+     */
     async openTagDropdown() {
         // Close any other open dropdowns
         document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
@@ -149,7 +176,9 @@ class TagManager {
         this.tagDropdown.classList.add('active');
     }
 
-    // Calculate and set the correct position for the tag dropdown
+    /**
+     * Calculate and set the correct position for the tag dropdown
+     */
     positionTagDropdown() {
         const button = this.tagButton;
         const dropdown = this.tagDropdown;
@@ -176,14 +205,18 @@ class TagManager {
         dropdown.style.maxHeight = `${Math.min(400, window.innerHeight - top - 20)}px`;
     }
 
-    // Close the tag dropdown menu
+    /**
+     * Close the tag dropdown menu
+     */
     closeTagDropdown() {
         this.tagDropdown.classList.remove('active');
     }
 
-    // Load tags into the dropdown menu
+    /**
+     * Load tags into the dropdown menu
+     */
     async loadTagsDropdown() {
-        const tags = await this.db.getAllTagsWithColors();
+        const tags = await this.tagService.getAllTagsWithColors();
         this.tagsDropdownList.innerHTML = '';
 
         if (tags.length === 0) {
@@ -197,7 +230,7 @@ class TagManager {
                 tagElement.className = 'tag-item';
 
                 // Get text color based on background brightness
-                const textColor = this.getTextColorForBackground(tag.color);
+                const textColor = this.tagService.getTextColorForBackground(tag.color);
 
                 tagElement.innerHTML = `
             <div class="tag-color-dot" style="background-color: ${tag.color}"></div>
@@ -216,7 +249,10 @@ class TagManager {
         }
     }
 
-    // Toggle a tag on the current note (add if not present, remove if present)
+    /**
+     * Toggle a tag on the current note (add if not present, remove if present)
+     * @param {string} tagName - The tag name to toggle
+     */
     async toggleTagOnNote(tagName) {
         if (!this.currentNote) return;
 
@@ -224,14 +260,11 @@ class TagManager {
 
         if (tagIndex === -1) {
             // Add tag to note
-            const updatedTags = [...this.currentNote.tags, tagName];
-            const updatedNote = await this.db.updateNote(this.currentNote.id, { tags: updatedTags });
+            const updatedNote = await this.tagService.addTagToNote(this.currentNote.id, tagName);
             this.currentNote = updatedNote;
         } else {
             // Remove tag from note
-            const updatedTags = [...this.currentNote.tags];
-            updatedTags.splice(tagIndex, 1);
-            const updatedNote = await this.db.updateNote(this.currentNote.id, { tags: updatedTags });
+            const updatedNote = await this.tagService.removeTagFromNote(this.currentNote.id, tagName);
             this.currentNote = updatedNote;
         }
 
@@ -245,72 +278,37 @@ class TagManager {
         }
     }
 
-    // Add a specific tag to the current note
-    async addTagToNote(tagName) {
-        if (!this.currentNote || this.currentNote.tags.includes(tagName)) return;
-
-        const updatedTags = [...this.currentNote.tags, tagName];
-        const updatedNote = await this.db.updateNote(this.currentNote.id, { tags: updatedTags });
-        this.currentNote = updatedNote;
-
-        // Update UI
-        this.renderNoteTags();
-
-        // Notify app.js that tags changed
-        if (typeof window.onTagsChanged === 'function') {
-            window.onTagsChanged();
-        }
-    }
-
-    // Remove a tag from the current note
-    async removeTagFromNote(tagName) {
-        if (!this.currentNote) return;
-
-        const tagIndex = this.currentNote.tags.indexOf(tagName);
-        if (tagIndex === -1) return;
-
-        const updatedTags = [...this.currentNote.tags];
-        updatedTags.splice(tagIndex, 1);
-
-        const updatedNote = await this.db.updateNote(this.currentNote.id, { tags: updatedTags });
-        this.currentNote = updatedNote;
-
-        // Update UI
-        this.renderNoteTags();
-
-        // Notify app.js that tags changed
-        if (typeof window.onTagsChanged === 'function') {
-            window.onTagsChanged();
-        }
-    }
-
-    // Render the tags for the current note
+    /**
+     * Render the tags for the current note
+     */
     async renderNoteTags() {
         this.tagsList.innerHTML = '';
 
         if (!this.currentNote) return;
 
         for (const tagName of this.currentNote.tags) {
-            const tagColor = await this.db.getTagColor(tagName);
+            const tagColor = await this.tagService.getTagColor(tagName);
 
             const tagElement = document.createElement('div');
             tagElement.className = 'tag';
             tagElement.style.backgroundColor = tagColor;
 
             // Determine text color based on background brightness
-            const textColor = this.getTextColorForBackground(tagColor);
+            const textColor = this.tagService.getTextColorForBackground(tagColor);
             tagElement.style.color = textColor;
 
             tagElement.innerHTML = `<span>${tagName}</span><span class="remove-tag">×</span>`;
 
-            tagElement.querySelector('.remove-tag').addEventListener('click', () => this.removeTagFromNote(tagName));
+            tagElement.querySelector('.remove-tag').addEventListener('click', () => this.toggleTagOnNote(tagName));
             this.tagsList.appendChild(tagElement);
         }
     }
 
-    // Load tags into the tags manager
+    /**
+     * Load tags into the tags manager
+     */
     async loadTagsManager() {
-        const tags = await this.db.getAllTagsWithColors();
+        const tags = await this.tagService.getAllTagsWithColors();
         this.tagsManagerList.innerHTML = '';
 
         if (tags.length === 0) {
@@ -342,7 +340,9 @@ class TagManager {
         }
     }
 
-    // Show the create tag modal
+    /**
+     * Show the create tag modal
+     */
     showCreateTagModal() {
         modalManager.open('create-tag-modal', {
             onOpen: () => {
@@ -362,9 +362,12 @@ class TagManager {
         });
     }
 
-    // Show the edit tag modal
+    /**
+     * Show the edit tag modal
+     * @param {string} tagName - The tag name to edit
+     */
     async showEditTagModal(tagName) {
-        const tagColor = await this.db.getTagColor(tagName);
+        const tagColor = await this.tagService.getTagColor(tagName);
 
         modalManager.open('edit-tag-modal', {
             onOpen: () => {
@@ -384,13 +387,15 @@ class TagManager {
         });
     }
 
-    // Create a new tag
+    /**
+     * Create a new tag
+     */
     async createNewTag() {
         const tagName = this.newTagName.value.trim();
         if (!tagName) return;
 
         // Add to global tags
-        await this.db.addTag(tagName, this.selectedTagColor);
+        await this.tagService.addTag(tagName, this.selectedTagColor);
 
         // Close modal
         modalManager.closeActiveModal();
@@ -404,40 +409,23 @@ class TagManager {
         }
     }
 
-    // Update an existing tag
+    /**
+     * Update an existing tag
+     */
     async updateTag() {
         const newName = this.editTagName.value.trim();
         const originalName = this.editTagOriginalName.value;
 
         if (!newName) return;
 
-        // Check if we're renaming
-        if (newName !== originalName) {
-            // Create new tag with the new name
-            await this.db.addTag(newName, this.editingTagColor);
+        // Update the tag
+        await this.tagService.updateTag(originalName, newName, this.editingTagColor);
 
-            // Update all notes that had the old tag
-            const notes = await this.db.getAllNotes();
-            for (const note of notes) {
-                if (note.tags.includes(originalName)) {
-                    const updatedTags = [...note.tags];
-                    const tagIndex = updatedTags.indexOf(originalName);
-                    updatedTags[tagIndex] = newName;
-                    await this.db.updateNote(note.id, { tags: updatedTags });
-                }
-            }
-
-            // Remove the old tag
-            await this.db.removeTag(originalName);
-
-            // Update current note reference if needed
-            if (this.currentNote && this.currentNote.tags.includes(originalName)) {
-                const updatedNote = await this.db.getNoteById(this.currentNote.id);
-                this.currentNote = updatedNote;
-            }
-        } else {
-            // Just update the color
-            await this.db.updateTagColor(originalName, this.editingTagColor);
+        // Update current note reference if needed
+        if (this.currentNote && this.currentNote.tags.includes(originalName)) {
+            // Get the updated note with the new tag
+            const noteId = this.currentNote.id;
+            this.currentNote = await window.db.getNoteById(noteId);
         }
 
         // Close modal
@@ -458,17 +446,19 @@ class TagManager {
         }
     }
 
-    // Delete a tag
+    /**
+     * Delete a tag
+     */
     async deleteTag() {
         const tagName = this.editTagOriginalName.value;
 
         if (confirm(`Are you sure you want to delete the tag "${tagName}"? It will be removed from all notes.`)) {
-            await this.db.removeTag(tagName);
+            await this.tagService.removeTag(tagName);
 
             // Update current note reference if needed
             if (this.currentNote && this.currentNote.tags.includes(tagName)) {
-                const updatedNote = await this.db.getNoteById(this.currentNote.id);
-                this.currentNote = updatedNote;
+                const noteId = this.currentNote.id;
+                this.currentNote = await window.db.getNoteById(noteId);
             }
 
             // Close modal
@@ -489,24 +479,7 @@ class TagManager {
             }
         }
     }
-
-    // Calculate the brightness of a color to determine text color
-    getBrightness(hexColor) {
-        // Convert hex to RGB
-        const r = parseInt(hexColor.substr(1, 2), 16);
-        const g = parseInt(hexColor.substr(3, 2), 16);
-        const b = parseInt(hexColor.substr(5, 2), 16);
-
-        // Calculate brightness (perceived luminance)
-        return (r * 299 + g * 587 + b * 114) / 1000;
-    }
-
-    // Get appropriate text color based on background color
-    getTextColorForBackground(backgroundColor) {
-        const brightness = this.getBrightness(backgroundColor);
-        return brightness > 160 ? '#333' : '#fff';
-    }
 }
 
-// This will be initialized in app.js
-let tagManager;
+// Export as a global to use in app.js
+window.TagUI = TagUI;

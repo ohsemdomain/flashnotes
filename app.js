@@ -1,346 +1,127 @@
-// app.js
-// Check if we're in full window mode
-function checkFullWindowMode() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isFullWindow = urlParams.get('fullwindow') === 'true';
-
-    if (isFullWindow) {
-        document.body.classList.add('full-window-mode');
-    }
-}
+// /js/app.js
+/**
+ * Flash Notes Extension
+ * Main Application Script
+ * 
+ * This script initializes the Flash Notes application, creating instances of
+ * the necessary services and UI components, and orchestrating their interactions.
+ * It serves as the main entry point and controller for the application.
+ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize database
+    window.db = new NoteDatabase();
+
     // Check if we're in full window mode
     checkFullWindowMode();
 
-    const db = new NoteDatabase();
-    let currentNote = null;
-    let saveTimeout;
+    // Initialize services
+    const noteService = new NoteService(window.db);
+    const tagService = new TagService(window.db);
 
-    // DOM elements
-    const notesList = document.getElementById('notes-list');
-    const noteTitle = document.getElementById('note-title');
-    const noteContent = document.getElementById('note-content');
-    const searchInput = document.getElementById('search-notes');
-    const saveStatus = document.getElementById('save-status');
-
-    // Format buttons
-    const formatBoldBtn = document.getElementById('format-bold');
-    const formatItalicBtn = document.getElementById('format-italic');
-    const formatUnderlineBtn = document.getElementById('format-underline');
-    const formatListBtn = document.getElementById('format-list');
-
-    // Action buttons
-    const newNoteBtn = document.getElementById('new-note');
-    const deleteNoteBtn = document.getElementById('delete-note-btn');
-    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-    const openExtensionButton = document.getElementById('open-extension-button');
-
-    // Initialize the tag manager
-    tagManager = new TagManager(db);
-
-    // Initialize the app
-    initApp();
-
-    // Define callback for tag changes
-    window.onTagsChanged = async function () {
-        await loadNotes();
+    // Callback for note changes
+    const onNoteChanged = async () => {
+        // This function will be called when a note is changed
+        // It allows propagating changes to other components if needed
     };
 
+    // Initialize UI components
+    window.noteUI = new NoteUI(noteService, onNoteChanged);
+    window.formatUI = new FormatUI();
+    window.tagUI = new TagUI(tagService);
+
+    // Register global callback for tag changes
+    window.onTagsChanged = async function () {
+        await window.noteUI.loadNotes();
+    };
+
+    // Initialize the application
+    initApp();
+
+    /**
+     * Initialize the application
+     */
     async function initApp() {
-        // Register modals - update to register the new separate modals
+        // Register modals
+        registerModals();
+
+        // Initialize utility buttons
+        initUtilityButtons();
+
+        // Load notes
+        await window.noteUI.loadNotes();
+
+        // If there are no notes, create a default one
+        const notes = await noteService.getAllNotes();
+        if (notes.length === 0) {
+            const newNote = await noteService.createNote();
+            await window.noteUI.loadNotes();
+            await window.noteUI.selectNote(newNote.id);
+        } else {
+            // Select the first note
+            await window.noteUI.selectNote(notes[0].id);
+        }
+    }
+
+    /**
+     * Check if we're in full window mode and apply appropriate styling
+     */
+    function checkFullWindowMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isFullWindow = urlParams.get('fullwindow') === 'true';
+
+        if (isFullWindow) {
+            document.body.classList.add('full-window-mode');
+        }
+    }
+
+    /**
+     * Register modal dialogs with the modal manager
+     */
+    function registerModals() {
         modalManager.register('delete-confirm-modal');
         modalManager.register('create-tag-modal');
         modalManager.register('edit-tag-modal');
         modalManager.register('tags-manager-modal');
         modalManager.register('backup-manager-modal');
         modalManager.register('appearance-manager-modal');
-
-        await loadNotes();
-
-        // If there are no notes, create a default one
-        const notes = await db.getAllNotes();
-        if (notes.length === 0) {
-            const newNote = await db.createNote();
-            await loadNotes();
-            await selectNote(newNote.id);
-        } else {
-            // Select the first note
-            await selectNote(notes[0].id);
-        }
-
-        // Set up event listeners
-        setupEventListeners();
-
-        // Set initial save status
-        updateSaveStatus('idle');
     }
 
-    async function loadNotes() {
-        const query = searchInput.value.trim();
-        const notes = await db.searchNotes(query);
-
-        notesList.innerHTML = '';
-
-        for (const note of notes) {
-            const noteElement = document.createElement('div');
-            noteElement.className = 'note-item';
-            noteElement.dataset.id = note.id;
-
-            if (currentNote && currentNote.id === note.id) {
-                noteElement.classList.add('active');
-            }
-
-            // Get title from the first line of content or use "Untitled Note"
-            const title = note.title || 'Untitled Note';
-
-            const updatedDate = new Date(note.updatedAt);
-            const day = String(updatedDate.getDate()).padStart(2, '0');
-            const month = String(updatedDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-            const year = updatedDate.getFullYear();
-            const date = `${day}.${month}.${year}`;
-
-            let tagsHTML = '';
-            for (const tagName of note.tags) {
-                const tagColor = await db.getTagColor(tagName);
-                tagsHTML += `<span class="tag-dot" style="background-color: ${tagColor}"></span>`;
-            }
-
-            noteElement.innerHTML = `
-  <h3>${title}</h3>
-  <div class="note-item-footer">
-    <small class="note-date">${date}</small>
-    <div class="note-tags-dots">${tagsHTML}</div>
-  </div>
-`;
-
-            noteElement.addEventListener('click', () => selectNote(note.id));
-            notesList.appendChild(noteElement);
-        }
-    }
-
-    async function selectNote(id) {
-        const note = await db.getNoteById(id);
-        if (!note) return;
-
-        currentNote = note;
-
-        // Update UI
-        noteTitle.innerHTML = note.title || '';
-        noteContent.innerHTML = note.content || '';
-
-        // Handle empty content
-        if (!note.title) {
-            noteTitle.innerHTML = '';
-        }
-
-        if (!note.content) {
-            noteContent.innerHTML = '';
-        }
-
-        // Highlight the selected note
-        const noteItems = notesList.querySelectorAll('.note-item');
-        noteItems.forEach(item => {
-            if (parseInt(item.dataset.id) === id) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
+    /**
+     * Initialize utility buttons in the sidebar
+     */
+    function initUtilityButtons() {
+        // Tags manager button
+        document.getElementById('tags-manager-button').addEventListener('click', () => {
+            modalManager.open('tags-manager-modal');
+            window.tagUI.loadTagsManager();
         });
 
-        // Update tag manager with current note
-        tagManager.setCurrentNote(note);
-
-        // Update save status
-        updateSaveStatus('idle');
-    }
-
-    async function saveCurrentNote() {
-        if (!currentNote) return;
-
-        // Set saving status
-        updateSaveStatus('saving');
-
-        const updatedNote = await db.updateNote(currentNote.id, {
-            title: noteTitle.textContent.trim(),
-            content: noteContent.innerHTML
+        // Backup manager button
+        document.getElementById('backup-manager-button').addEventListener('click', () => {
+            modalManager.open('backup-manager-modal');
         });
 
-        currentNote = updatedNote;
-        await loadNotes();
+        // Appearance manager button
+        document.getElementById('appearance-manager-button').addEventListener('click', () => {
+            modalManager.open('appearance-manager-modal');
+        });
 
-        // Show saved status
-        updateSaveStatus('saved');
-
-        // After 2 seconds, change to idle status
-        setTimeout(() => {
-            updateSaveStatus('idle');
-        }, 2000);
-    }
-
-    // Apply format
-    function applyFormat(command, value = null) {
-        document.execCommand(command, false, value);
-        // Focus back on the content area
-        noteContent.focus();
-    }
-
-    // Update the save status indicator
-    function updateSaveStatus(status) {
-        // Remove any existing classes
-        saveStatus.classList.remove('saving', 'saved', 'idle');
-
-        // Add the appropriate class
-        saveStatus.classList.add(status);
-
-        // Update the text based on status
-        switch (status) {
-            case 'saving':
-                saveStatus.textContent = 'Saving...';
-                break;
-            case 'saved':
-                saveStatus.textContent = 'All changes saved';
-                break;
-            case 'idle':
-                saveStatus.textContent = 'All changes saved';
-                break;
-        }
-    }
-
-    async function createNewNote() {
-        const newNote = await db.createNote();
-        await loadNotes();
-        await selectNote(newNote.id);
-
-        // Focus on the title area
-        noteTitle.focus();
-    }
-
-    function showDeleteConfirmation() {
-        if (!currentNote) return;
-        modalManager.open('delete-confirm-modal');
-    }
-
-    async function deleteCurrentNote() {
-        if (!currentNote) return;
-
-        await db.deleteNote(currentNote.id);
-
-        const notes = await db.getAllNotes();
-        await loadNotes();
-
-        if (notes.length > 0) {
-            await selectNote(notes[0].id);
-        } else {
-            // Clear the editor if no notes left
-            currentNote = null;
-            noteTitle.innerHTML = '';
-            noteContent.innerHTML = '';
-            tagManager.setCurrentNote(null);
-            updateSaveStatus('idle');
-        }
-
-        // Close the delete confirmation modal
-        modalManager.closeActiveModal();
-    }
-
-    // New function to open extension in a browser window
-    function openExtensionInBrowser() {
-        const extensionUrl = chrome.runtime.getURL('index.html?fullwindow=true');
-        chrome.tabs.create({ url: extensionUrl });
-    }
-
-    // Manager functions
-    function openTagsManager() {
-        modalManager.open('tags-manager-modal');
-        tagManager.loadTagsManager();
-    }
-
-    function openBackupManager() {
-        modalManager.open('backup-manager-modal');
-    }
-
-    function openAppearanceManager() {
-        modalManager.open('appearance-manager-modal');
-    }
-
-    function setupEventListeners() {
-        // Format buttons
-        formatBoldBtn.addEventListener('click', () => applyFormat('bold'));
-        formatItalicBtn.addEventListener('click', () => applyFormat('italic'));
-        formatUnderlineBtn.addEventListener('click', () => applyFormat('underline'));
-        formatListBtn.addEventListener('click', () => applyFormat('insertUnorderedList'));
-
-        // Button clicks
-        newNoteBtn.addEventListener('click', createNewNote);
-        deleteNoteBtn.addEventListener('click', showDeleteConfirmation);
-        confirmDeleteBtn.addEventListener('click', deleteCurrentNote);
-        cancelDeleteBtn.addEventListener('click', () => modalManager.closeActiveModal());
-
-        // Manager buttons in the sidebar footer
-        document.getElementById('tags-manager-button').addEventListener('click', openTagsManager);
-        document.getElementById('backup-manager-button').addEventListener('click', openBackupManager);
-        document.getElementById('appearance-manager-button').addEventListener('click', openAppearanceManager);
+        // Open in browser button
         document.getElementById('open-extension-button').addEventListener('click', openExtensionInBrowser);
 
         // Add tag button inside Tags Manager modal
         document.getElementById('add-tag-manager-btn').addEventListener('click', () => {
             modalManager.closeActiveModal(); // Close tags manager modal
-            tagManager.showCreateTagModal(); // Open create tag modal
+            window.tagUI.showCreateTagModal(); // Open create tag modal
         });
+    }
 
-        // Content change events
-        noteTitle.addEventListener('input', () => {
-            // Show saving status immediately when typing begins
-            updateSaveStatus('saving');
-
-            // Clear any previous timeout
-            clearTimeout(saveTimeout);
-
-            // Set a new timeout
-            saveTimeout = setTimeout(saveCurrentNote, 1000);
-        });
-
-        noteContent.addEventListener('input', () => {
-            // Show saving status immediately when typing begins
-            updateSaveStatus('saving');
-
-            // Clear any previous timeout
-            clearTimeout(saveTimeout);
-
-            // Set a new timeout
-            saveTimeout = setTimeout(saveCurrentNote, 1000);
-        });
-
-        // Handle Enter key in title to move to content
-        noteTitle.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                noteContent.focus();
-            }
-        });
-
-        // Search functionality
-        searchInput.addEventListener('input', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(loadNotes, 300);
-        });
-
-        // Format keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-                applyFormat('bold');
-                e.preventDefault();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-                applyFormat('italic');
-                e.preventDefault();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-                applyFormat('underline');
-                e.preventDefault();
-            }
-        });
+    /**
+     * Open extension in a separate browser window
+     */
+    function openExtensionInBrowser() {
+        const extensionUrl = chrome.runtime.getURL('index.html?fullwindow=true');
+        chrome.tabs.create({ url: extensionUrl });
     }
 });

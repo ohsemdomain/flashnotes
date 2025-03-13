@@ -1,3 +1,25 @@
+/**
+ * Flash Notes Extension
+ * Main Stylesheet
+ * 
+ * This stylesheet is organized into logical sections:
+ * 1. Base/Reset Styles
+ * 2. Layout Structure
+ * 3. Sidebar Components
+ * 4. Main Content Area
+ * 5. Format Toolbar
+ * 6. Notes Content
+ * 7. Tag Components
+ * 8. Modal Styles
+ * 9. Form Elements
+ * 10. Utility Classes
+ * 11. Responsive Styles & Full Window Mode
+ */
+
+/* ==========================================================================
+   1. Base/Reset Styles
+   ========================================================================== */
+
 * {
   margin: 0;
   padding: 0;
@@ -13,13 +35,37 @@ body {
   overflow: hidden;
 }
 
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  color: #007bff;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  color: #333;
+}
+
+/* ==========================================================================
+     2. Layout Structure
+     ========================================================================== */
+
 .container {
   display: flex;
   width: 100%;
   height: 100%;
 }
 
-/* Sidebar styling */
+/* ==========================================================================
+     3. Sidebar Components
+     ========================================================================== */
+
 .sidebar {
   width: 200px;
   height: 100%;
@@ -154,7 +200,7 @@ button#new-note:hover {
   margin-top: 2px;
 }
 
-/* Updated sidebar footer with three buttons */
+/* Sidebar footer */
 .sidebar-footer {
   padding: 8px;
   height: 40px;
@@ -186,13 +232,10 @@ button#new-note:hover {
   color: oklch(0.709 0.01 56.259);
 }
 
-.icon {
-  width: 16px;
-  height: 16px;
-  color: #333;
-}
+/* ==========================================================================
+     4. Main Content Area
+     ========================================================================== */
 
-/* Main content area */
 .main-content {
   flex: 1;
   display: flex;
@@ -215,28 +258,180 @@ button#new-note:hover {
   gap: 5px;
 }
 
-#tag-button {
+/* ==========================================================================
+     5. Format Toolbar
+     ========================================================================== */
+
+.format-toolbar {
+  display: flex;
+  height: 50px;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: oklch(0.97 0.001 106.424);
+  border-bottom: 1px solid oklch(0.923 0.003 48.717);
+}
+
+.format-toolbar .icon {
+  color: oklch(0.444 0.011 73.639);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.format-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
   padding: 5px;
   background: none;
-  border: none;
-  cursor: pointer;
-  color: #555;
+  border: 1px solid oklch(0.923 0.003 48.717);
   border-radius: 4px;
+  cursor: pointer;
+  color: oklch(0.444 0.011 73.639);
 }
 
-#note-menu-button {
-  font-size: 18px;
+.format-btn:hover {
+  background-color: #f0f0f0;
+  color: oklch(0.709 0.01 56.259);
+}
+
+.format-btn.active {
+  background-color: #e6f2ff;
+  color: oklch(0.709 0.01 56.259);
+}
+
+/* Tag and delete buttons in toolbar */
+#tag-button,
+#delete-note-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   padding: 5px;
-  cursor: pointer;
   background: none;
-  border: none;
-  color: #555;
+  border: 1px solid oklch(0.923 0.003 48.717);
   border-radius: 4px;
+  cursor: pointer;
+  color: #555;
 }
 
+#tag-button {
+  position: relative;
+}
+
+#tag-button:hover {
+  background-color: #f0f0f0;
+  color: #007bff;
+}
+
+#delete-note-btn:hover {
+  background-color: #fee;
+  border: 1px solid oklch(0.892 0.058 10.001);
+  color: #dc3545;
+}
+
+/* Delete icon */
+.delete-icon {
+  transition: color 0.2s ease;
+}
+
+/* ==========================================================================
+     6. Notes Content
+     ========================================================================== */
+
+.note-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+#note-title {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 10px 2px;
+  border: none;
+  outline: none;
+  width: 70%;
+}
+
+.title-area:empty::before {
+  content: attr(placeholder);
+  color: #aaa;
+  font-weight: 600;
+}
+
+.note-content-area {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 200px;
+}
+
+.note-content-area:empty::before {
+  content: attr(placeholder);
+  color: #aaa;
+}
+
+#note-content {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#note-content:focus {
+  outline: none;
+}
+
+/* Save indicator at the bottom */
+.save-indicator {
+  padding: 6px 10px;
+  height: 40px;
+  background-color: oklch(0.97 0.001 106.424);
+  border-top: 1px solid oklch(0.923 0.003 48.717);
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#save-status {
+  transition: opacity 0.3s ease;
+}
+
+#save-status.saving {
+  color: #007bff;
+}
+
+#save-status.saved {
+  color: #28a745;
+  opacity: 1;
+}
+
+#save-status.idle {
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+     7. Tag Components
+     ========================================================================== */
+
+/* Tag dropdown */
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -407,31 +602,118 @@ button#new-note:hover {
   gap: 6px;
 }
 
-#note-content {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  resize: none;
+/* Tags Manager */
+.tags-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.tags-manager-header h4 {
+  margin: 0;
+  font-size: 15px;
+}
+
+#add-tag-manager-btn {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+#add-tag-manager-btn:hover {
+  background-color: #e5e5e5;
+}
+
+.tags-list-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tag-manager-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.tag-info {
+  display: flex;
+  align-items: center;
+}
+
+.tag-color-preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.tag-edit-button {
+  color: #666;
   font-size: 14px;
-  line-height: 1.5;
 }
 
-#note-content:focus {
-  outline: none;
-}
-
-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-button:hover {
+.tag-edit-button:hover {
   color: #007bff;
 }
 
-/* Modal Styles */
+.empty-tags-message {
+  padding: 15px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+.create-new-tag-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.create-new-tag-item:hover {
+  background-color: #f0f8ff;
+}
+
+.create-new-tag-item span {
+  margin-right: 5px;
+  font-weight: bold;
+}
+
+/* Tag colors */
+.tag-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.color-option.selected {
+  border-color: #333;
+}
+
+/* ==========================================================================
+     8. Modal Styles
+     ========================================================================== */
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -457,7 +739,6 @@ button:hover {
   background-color: white;
   border-radius: 6px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  /* width: 400px; */
   max-width: 90vw;
   z-index: 101;
   display: none;
@@ -521,241 +802,6 @@ button:hover {
   color: #333;
 }
 
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.tag-colors {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.color-option {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-}
-
-.color-option.selected {
-  border-color: #333;
-}
-
-#create-tag-button,
-#update-tag-button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-#create-tag-button:hover,
-#update-tag-button:hover {
-  background-color: #0069d9;
-}
-
-#delete-tag-button {
-  padding: 8px 16px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-#delete-tag-button:hover {
-  background-color: #c82333;
-}
-
-/* Placeholder text */
-.placeholder-text {
-  color: #888;
-  font-style: italic;
-  margin-top: 15px;
-  text-align: center;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.button-group button {
-  padding: 8px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #666;
-}
-
-.button-group button:hover {
-  background-color: #e5e5e5;
-  color: #333;
-}
-
-.empty-tags-message {
-  padding: 15px;
-  text-align: center;
-  color: #888;
-  font-style: italic;
-}
-
-.create-new-tag-item {
-  display: flex;
-  align-items: center;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #007bff;
-  font-weight: 500;
-}
-
-.create-new-tag-item:hover {
-  background-color: #f0f8ff;
-}
-
-.create-new-tag-item span {
-  margin-right: 5px;
-  font-weight: bold;
-}
-
-/* Tags Manager */
-.tags-manager-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.tags-manager-header h4 {
-  margin: 0;
-  font-size: 15px;
-}
-
-#add-tag-manager-btn {
-  padding: 5px 10px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-#add-tag-manager-btn:hover {
-  background-color: #e5e5e5;
-}
-
-.tags-list-manager {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tag-manager-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 10px;
-  background-color: #f8f8f8;
-  border-radius: 4px;
-  border: 1px solid #eee;
-}
-
-.tag-info {
-  display: flex;
-  align-items: center;
-}
-
-.tag-color-preview {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.tag-edit-button {
-  color: #666;
-  font-size: 14px;
-}
-
-.tag-edit-button:hover {
-  color: #007bff;
-}
-
-/* Save indicator */
-.save-indicator {
-  padding: 6px 10px;
-  background-color: #f5f5f5;
-  border-top: 1px solid #ddd;
-  font-size: 12px;
-  color: #666;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-#save-status {
-  transition: opacity 0.3s ease;
-}
-
-#save-status.saving {
-  color: #007bff;
-}
-
-#save-status.saved {
-  color: #28a745;
-  opacity: 1;
-}
-
-#save-status.idle {
-  opacity: 0.7;
-}
-
-/* Delete button styling */
-#delete-note-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #555;
-  border-radius: 4px;
-}
-
-#delete-note-btn:hover {
-  background-color: #fee;
-  color: #dc3545;
-}
-
-.delete-icon {
-  transition: color 0.2s ease;
-}
-
 /* Delete confirmation modal styling */
 .delete-warning {
   color: #dc3545;
@@ -791,152 +837,93 @@ button:hover {
   background-color: #c82333;
 }
 
-/* Format toolbar */
-.format-toolbar {
-  display: flex;
-  height: 50px;
-  justify-content: space-between;
-  padding: 8px 10px;
-  background-color: oklch(0.97 0.001 106.424);
-  border-bottom: 1px solid oklch(0.923 0.003 48.717);
+/* ==========================================================================
+     9. Form Elements
+     ========================================================================== */
+
+.form-group {
+  margin-bottom: 15px;
 }
 
-.format-toolbar .icon {
-  color: oklch(0.444 0.011 73.639);
-}
-
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.format-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 5px;
-  background: none;
-  border: 1px solid oklch(0.923 0.003 48.717);
-  border-radius: 4px;
-  cursor: pointer;
-  color: oklch(0.444 0.011 73.639);
-}
-
-.format-btn:hover {
-  background-color: #f0f0f0;
-  color: oklch(0.709 0.01 56.259);
-}
-
-.format-btn.active {
-  background-color: #e6f2ff;
-  color: oklch(0.709 0.01 56.259);
-}
-
-/* Tag and delete buttons in toolbar */
-#tag-button,
-#delete-note-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 5px;
-  background: none;
-  border: 1px solid oklch(0.923 0.003 48.717);
-  border-radius: 4px;
-  cursor: pointer;
-  color: #555;
-}
-
-#tag-button {
-  position: relative;
-}
-
-#tag-button:hover {
-  background-color: #f0f0f0;
-  color: #007bff;
-}
-
-#delete-note-btn:hover {
-  background-color: #fee;
-  border: 1px solid oklch(0.892 0.058 10.001);
-  color: #dc3545;
-}
-
-/* Note content area with title */
-.note-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow-y: auto;
-}
-
-#note-title {
-  font-size: 15px;
-  font-weight: 600;
-  padding: 10px 10px 2px;
-  border: none;
-  outline: none;
-  width: 70%;
-}
-
-.title-area:empty::before {
-  content: attr(placeholder);
-  color: #aaa;
-  font-weight: 600;
-}
-
-.note-content-area {
-  flex: 1;
-  padding: 15px;
-  border: none;
-  outline: none;
-  resize: none;
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
   font-size: 14px;
-  line-height: 1.5;
-  min-height: 200px;
 }
 
-.note-content-area:empty::before {
-  content: attr(placeholder);
-  color: #aaa;
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-/* Save indicator at the bottom */
-.save-indicator {
-  padding: 6px 10px;
-  height: 40px;
-  background-color: oklch(0.97 0.001 106.424);
-  border-top: 1px solid oklch(0.923 0.003 48.717);
-  font-size: 12px;
-  color: #666;
+.button-group {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-#save-status {
-  transition: opacity 0.3s ease;
+.button-group button {
+  padding: 8px 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
 }
 
-#save-status.saving {
-  color: #007bff;
+.button-group button:hover {
+  background-color: #e5e5e5;
+  color: #333;
 }
 
-#save-status.saved {
-  color: #28a745;
-  opacity: 1;
+#create-tag-button,
+#update-tag-button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
-#save-status.idle {
-  opacity: 0.7;
+#create-tag-button:hover,
+#update-tag-button:hover {
+  background-color: #0069d9;
 }
 
-/* Full window mode styles */
+#delete-tag-button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#delete-tag-button:hover {
+  background-color: #c82333;
+}
+
+/* ==========================================================================
+     10. Utility Classes
+     ========================================================================== */
+
+.placeholder-text {
+  color: #888;
+  font-style: italic;
+  margin-top: 15px;
+  text-align: center;
+}
+
+/* ==========================================================================
+     11. Responsive Styles & Full Window Mode
+     ========================================================================== */
 
 /* Base styles for full window mode */
 body.full-window-mode {
