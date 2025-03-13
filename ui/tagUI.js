@@ -82,13 +82,8 @@ class TagUI {
         // Color selection in create tag modal
         this.colorOptions.forEach(option => {
             option.addEventListener('click', () => {
-                // Remove selected class from all options
-                this.colorOptions.forEach(opt => opt.classList.remove('selected'));
-
-                // Add selected class to clicked option
-                option.classList.add('selected');
-
-                // Update selected color
+                // Use helper to update color selection
+                TagHelper.selectColorOption(this.colorOptions, option.dataset.color);
                 this.selectedTagColor = option.dataset.color;
             });
         });
@@ -96,13 +91,8 @@ class TagUI {
         // Color selection in edit tag modal
         this.editColorOptions.forEach(option => {
             option.addEventListener('click', () => {
-                // Remove selected class from all options
-                this.editColorOptions.forEach(opt => opt.classList.remove('selected'));
-
-                // Add selected class to clicked option
-                option.classList.add('selected');
-
-                // Update editing color
+                // Use helper to update color selection
+                TagHelper.selectColorOption(this.editColorOptions, option.dataset.color);
                 this.editingTagColor = option.dataset.color;
             });
         });
@@ -180,29 +170,8 @@ class TagUI {
      * Calculate and set the correct position for the tag dropdown
      */
     positionTagDropdown() {
-        const button = this.tagButton;
-        const dropdown = this.tagDropdown;
-
-        // Get button position
-        const buttonRect = button.getBoundingClientRect();
-
-        // Calculate initial position (below the button)
-        let top = buttonRect.bottom + 5;
-        let right = window.innerWidth - buttonRect.right;
-
-        // Check if dropdown would go off the bottom of the screen
-        const dropdownHeight = 300; // Max height of dropdown
-        if (top + dropdownHeight > window.innerHeight) {
-            // Position above the button if it would go off screen
-            top = buttonRect.top - dropdownHeight - 5;
-        }
-
-        // Set the position
-        dropdown.style.top = `${top}px`;
-        dropdown.style.right = `${right}px`;
-
-        // Ensure the dropdown is within the viewport
-        dropdown.style.maxHeight = `${Math.min(400, window.innerHeight - top - 20)}px`;
+        // Use the helper function to position the dropdown
+        TagHelper.positionDropdown(this.tagButton, this.tagDropdown);
     }
 
     /**
@@ -229,13 +198,13 @@ class TagUI {
                 const tagElement = document.createElement('div');
                 tagElement.className = 'tag-item';
 
-                // Get text color based on background brightness
-                const textColor = this.tagService.getTextColorForBackground(tag.color);
+                // Get text color based on background brightness using helper
+                const textColor = TagHelper.getTextColorForBackground(tag.color);
 
                 tagElement.innerHTML = `
-            <div class="tag-color-dot" style="background-color: ${tag.color}"></div>
-            <span>${tag.name}</span>
-          `;
+                    <div class="tag-color-dot" style="background-color: ${tag.color}"></div>
+                    <span>${tag.name}</span>
+                `;
 
                 // Check if tag is already applied to current note
                 if (this.currentNote && this.currentNote.tags.includes(tag.name)) {
@@ -289,17 +258,13 @@ class TagUI {
         for (const tagName of this.currentNote.tags) {
             const tagColor = await this.tagService.getTagColor(tagName);
 
-            const tagElement = document.createElement('div');
-            tagElement.className = 'tag';
-            tagElement.style.backgroundColor = tagColor;
+            // Use helper to create tag element
+            const tagElement = TagHelper.createTagElement(
+                tagName,
+                tagColor,
+                () => this.toggleTagOnNote(tagName)
+            );
 
-            // Determine text color based on background brightness
-            const textColor = this.tagService.getTextColorForBackground(tagColor);
-            tagElement.style.color = textColor;
-
-            tagElement.innerHTML = `<span>${tagName}</span><span class="remove-tag">×</span>`;
-
-            tagElement.querySelector('.remove-tag').addEventListener('click', () => this.toggleTagOnNote(tagName));
             this.tagsList.appendChild(tagElement);
         }
     }
@@ -324,12 +289,12 @@ class TagUI {
             tagElement.className = 'tag-manager-item';
 
             tagElement.innerHTML = `
-          <div class="tag-info">
-            <div class="tag-color-preview" style="background-color: ${tag.color}"></div>
-            <span>${tag.name}</span>
-          </div>
-          <button class="tag-edit-button" data-tag="${tag.name}">Edit</button>
-        `;
+                <div class="tag-info">
+                    <div class="tag-color-preview" style="background-color: ${tag.color}"></div>
+                    <span>${tag.name}</span>
+                </div>
+                <button class="tag-edit-button" data-tag="${tag.name}">Edit</button>
+            `;
 
             tagElement.querySelector('.tag-edit-button').addEventListener('click', (e) => {
                 const tagName = e.target.dataset.tag;
@@ -344,20 +309,17 @@ class TagUI {
      * Show the create tag modal
      */
     showCreateTagModal() {
+        // Store the current active modal (Tags Manager) before opening a new one
+        modalManager.lastOpenedModal = 'tags-manager-modal';
+
         modalManager.open('create-tag-modal', {
             onOpen: () => {
                 this.newTagName.value = '';
                 this.newTagName.focus();
                 this.selectedTagColor = '#e4e4e4';
 
-                // Reset selected color
-                this.colorOptions.forEach(option => {
-                    if (option.dataset.color === this.selectedTagColor) {
-                        option.classList.add('selected');
-                    } else {
-                        option.classList.remove('selected');
-                    }
-                });
+                // Use helper to reset color selection
+                TagHelper.selectColorOption(this.colorOptions, this.selectedTagColor);
             }
         });
     }
@@ -369,20 +331,26 @@ class TagUI {
     async showEditTagModal(tagName) {
         const tagColor = await this.tagService.getTagColor(tagName);
 
+        // Store the current active modal (Tags Manager) before opening a new one
+        modalManager.lastOpenedModal = 'tags-manager-modal';
+
+        // Set the values before opening the modal
+        this.editTagName.value = tagName;
+        this.editTagOriginalName.value = tagName;
+        this.editingTagColor = tagColor;
+
+        // Now open the modal
         modalManager.open('edit-tag-modal', {
             onOpen: () => {
-                this.editTagName.value = tagName;
-                this.editTagOriginalName.value = tagName;
-                this.editingTagColor = tagColor;
+                // Set these values again inside the onOpen callback to ensure they're applied
+                // after the modal is fully rendered
+                setTimeout(() => {
+                    this.editTagName.value = tagName;
+                    this.editTagOriginalName.value = tagName;
 
-                // Set selected color
-                this.editColorOptions.forEach(option => {
-                    if (option.dataset.color === tagColor) {
-                        option.classList.add('selected');
-                    } else {
-                        option.classList.remove('selected');
-                    }
-                });
+                    // Use helper to select the correct color
+                    TagHelper.selectColorOption(this.editColorOptions, tagColor);
+                }, 50); // Small delay to ensure the modal is visible
             }
         });
     }
@@ -397,10 +365,13 @@ class TagUI {
         // Add to global tags
         await this.tagService.addTag(tagName, this.selectedTagColor);
 
-        // Close modal
+        // Close the create tag modal and return to tags manager
         modalManager.closeActiveModal();
 
-        // Refresh tag lists
+        // Re-open the tags manager modal
+        modalManager.open('tags-manager-modal');
+
+        // Refresh the tags manager list
         this.loadTagsManager();
 
         // If dropdown was open, refresh it
@@ -428,8 +399,11 @@ class TagUI {
             this.currentNote = await window.db.getNoteById(noteId);
         }
 
-        // Close modal
+        // Close the edit modal
         modalManager.closeActiveModal();
+
+        // Re-open the tags manager modal
+        modalManager.open('tags-manager-modal');
 
         // Refresh UI
         this.loadTagsManager();
@@ -452,7 +426,8 @@ class TagUI {
     async deleteTag() {
         const tagName = this.editTagOriginalName.value;
 
-        if (confirm(`Are you sure you want to delete the tag "${tagName}"? It will be removed from all notes.`)) {
+        // Use helper for confirmation dialog
+        if (TagHelper.confirmAction(`Are you sure you want to delete the tag "${tagName}"? It will be removed from all notes.`)) {
             await this.tagService.removeTag(tagName);
 
             // Update current note reference if needed
@@ -461,8 +436,11 @@ class TagUI {
                 this.currentNote = await window.db.getNoteById(noteId);
             }
 
-            // Close modal
+            // Close the edit modal
             modalManager.closeActiveModal();
+
+            // Re-open the tags manager modal
+            modalManager.open('tags-manager-modal');
 
             // Refresh UI
             this.loadTagsManager();
