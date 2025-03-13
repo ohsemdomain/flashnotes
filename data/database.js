@@ -1,4 +1,16 @@
-// database.js
+// /js/data/database.js
+/**
+ * Note Database
+ * 
+ * Handles all data storage operations for the Flash Notes extension, including:
+ * - Initialization of the database structure
+ * - CRUD operations for notes and tags
+ * - Data persistence using Chrome's storage API
+ * - Search functionality for notes
+ * 
+ * This class serves as the data layer of the application, providing a clean API
+ * for accessing and manipulating notes and tags data.
+ */
 class NoteDatabase {
   constructor() {
     this.initialize();
@@ -39,27 +51,31 @@ class NoteDatabase {
 
   async getAllNotes() {
     const data = await this.getData();
-    return data.notes || [];
+    return data && data.notes ? data.notes : [];
   }
 
   async getAllTags() {
     const data = await this.getData();
-    return data.tags || [];
+    return data && data.tags ? data.tags : [];
   }
 
   async getTagColor(tagName) {
     const data = await this.getData();
-    return data.tagColors[tagName] || '#e4e4e4'; // Default color
+    return data && data.tagColors && data.tagColors[tagName] ? data.tagColors[tagName] : '#e4e4e4'; // Default color
   }
 
   async getAllTagsWithColors() {
     const data = await this.getData();
     const result = [];
 
+    if (!data || !data.tags) {
+      return result;
+    }
+
     for (const tag of data.tags) {
       result.push({
         name: tag,
-        color: data.tagColors[tag] || '#e4e4e4'
+        color: data.tagColors && data.tagColors[tag] ? data.tagColors[tag] : '#e4e4e4'
       });
     }
 
@@ -73,6 +89,12 @@ class NoteDatabase {
 
   async createNote(title = '', content = '', tags = []) {
     const data = await this.getData();
+
+    if (!data) {
+      await this.initialize();
+      return this.createNote(title, content, tags);
+    }
+
     const newId = data.lastId + 1;
 
     const newNote = {
@@ -93,6 +115,11 @@ class NoteDatabase {
 
   async updateNote(id, updates) {
     const data = await this.getData();
+
+    if (!data || !data.notes) {
+      return null;
+    }
+
     const noteIndex = data.notes.findIndex(note => note.id === id);
 
     if (noteIndex === -1) return null;
@@ -111,6 +138,11 @@ class NoteDatabase {
 
   async deleteNote(id) {
     const data = await this.getData();
+
+    if (!data || !data.notes) {
+      return false;
+    }
+
     const noteIndex = data.notes.findIndex(note => note.id === id);
 
     if (noteIndex === -1) return false;
@@ -125,6 +157,12 @@ class NoteDatabase {
     if (!tagName) return null;
 
     const data = await this.getData();
+
+    if (!data) {
+      await this.initialize();
+      return this.addTag(tagName, color);
+    }
+
     const tagExists = data.tags.includes(tagName);
 
     if (tagExists) {
@@ -143,6 +181,11 @@ class NoteDatabase {
 
   async updateTagColor(tagName, color) {
     const data = await this.getData();
+
+    if (!data || !data.tags) {
+      return false;
+    }
+
     if (data.tags.includes(tagName)) {
       data.tagColors[tagName] = color;
       await this.setData(data);
@@ -153,6 +196,11 @@ class NoteDatabase {
 
   async removeTag(tagName) {
     const data = await this.getData();
+
+    if (!data || !data.tags) {
+      return false;
+    }
+
     const tagIndex = data.tags.indexOf(tagName);
 
     if (tagIndex === -1) return false;
@@ -160,12 +208,14 @@ class NoteDatabase {
     data.tags.splice(tagIndex, 1);
 
     // Also remove this tag from all notes
-    data.notes.forEach(note => {
-      const tagIdx = note.tags.indexOf(tagName);
-      if (tagIdx !== -1) {
-        note.tags.splice(tagIdx, 1);
-      }
-    });
+    if (data.notes) {
+      data.notes.forEach(note => {
+        const tagIdx = note.tags.indexOf(tagName);
+        if (tagIdx !== -1) {
+          note.tags.splice(tagIdx, 1);
+        }
+      });
+    }
 
     // Remove color
     if (data.tagColors && data.tagColors[tagName]) {
