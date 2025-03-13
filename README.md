@@ -40,10 +40,21 @@ Flash Notes is a Chrome extension that allows you to create and manage multiple 
 *   IndexedDB (via custom `database.js`)
 
 ## Contributing
-Feel free to fork the repository and submit pull requests.
+
+Feel free to fork the repository and submit pull requests. To ensure a smooth contribution process, please follow these guidelines:
+
+*   Follow the coding standards used in the project.
+*   Use issue templates when reporting issues or requesting features.
+*   Ensure your code is well-documented and includes tests if applicable.
+
+## Reporting Issues or Requesting Features
+
+If you encounter any issues or have feature requests, please use the [issue tracker](https://github.com/your-repo/flashnotes/issues) on GitHub. When reporting issues, please provide detailed information about the problem, including steps to reproduce it. For feature requests, describe the feature you would like to see and explain why it would be beneficial.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details (Note: You'll need to create a LICENSE file if you want to specify a license).
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Author
+
 Mohd Adnan

@@ -12,7 +12,8 @@
     }
   },
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   "icons": {
     "16": "flash-notes-icon.png",

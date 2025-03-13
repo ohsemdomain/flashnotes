@@ -935,3 +935,89 @@ button:hover {
 #save-status.idle {
   opacity: 0.7;
 }
+
+/* Full window mode styles */
+
+/* Base styles for full window mode */
+body.full-window-mode {
+  width: 100% !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: hidden;
+}
+
+/* Container adjustments for full window */
+body.full-window-mode .container {
+  width: 100%;
+  height: 100vh;
+}
+
+/* Sidebar adjustments */
+body.full-window-mode .sidebar {
+  width: 280px;
+  /* Wider sidebar in full window mode */
+  height: 100vh;
+}
+
+/* Ensure main content expands to fill available space */
+body.full-window-mode .main-content {
+  flex: 1;
+  height: 100vh;
+}
+
+/* Adjust note content area for better use of vertical space */
+body.full-window-mode .note-content-wrapper {
+  height: calc(100vh - 90px);
+  /* Subtract toolbar and footer heights */
+}
+
+/* Adjust scrolling behavior in full window mode */
+body.full-window-mode .notes-list {
+  max-height: calc(100vh - 90px);
+  /* Subtract header and footer heights */
+}
+
+/* Make sure modals are properly positioned in full window mode */
+body.full-window-mode .modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+}
+
+/* Ensure tag dropdown is properly positioned in full window mode */
+body.full-window-mode #tag-dropdown {
+  position: fixed;
+  z-index: 1000;
+}
+
+/* Make note content area expand to fill available height */
+body.full-window-mode .note-content-area {
+  height: calc(100vh - 140px);
+  /* Adjust based on other elements' heights */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+  body.full-window-mode .sidebar {
+    width: 240px;
+  }
+}
+
+/* Media query for larger screens */
+@media (min-width: 1200px) {
+  body.full-window-mode .sidebar {
+    width: 320px;
+    /* Even wider sidebar on large screens */
+  }
+
+  body.full-window-mode #note-title {
+    font-size: 18px;
+  }
+
+  body.full-window-mode .note-content-area {
+    font-size: 16px;
+  }
+}

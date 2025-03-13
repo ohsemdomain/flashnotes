@@ -25,7 +25,7 @@
       <!-- Notes list -->
       <div class="notes-list" id="notes-list"></div>
 
-      <!-- Three independent manager buttons in the sidebar footer -->
+      <!-- Sidebar footer section in index.html -->
       <div class="sidebar-footer">
         <!-- Tags icon -->
         <button id="tags-manager-button" title="Manage Tags">
@@ -35,7 +35,7 @@
             <line x1="7" y1="7" x2="7.01" y2="7"></line>
           </svg>
         </button>
-        
+
         <!-- Backup icon -->
         <button id="backup-manager-button" title="Backup & Restore">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -45,7 +45,7 @@
             <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
         </button>
-        
+
         <!-- Appearance icon -->
         <button id="appearance-manager-button" title="Appearance Settings">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -59,6 +59,16 @@
             <path d="M19.78 4.22L18.37 5.63"></path>
             <path d="M19.78 19.78l-1.41-1.41"></path>
             <path d="M4.22 19.78l1.41-1.41"></path>
+          </svg>
+        </button>
+
+        <!-- New Open in Browser button -->
+        <button id="open-extension-button" title="Open in Browser">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
           </svg>
         </button>
       </div>
@@ -179,7 +189,7 @@
     </div>
   </div>
 
-  <!-- Tags Manager Modal (replacing the Settings Modal) -->
+  <!-- Managers Modal -->
   <div id="tags-manager-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -291,7 +301,7 @@
   </div>
 
   <script src="modal.js"></script>
-  <script src="database.js"></script>
+  <script src="data/database.js"></script>
   <script src="tags.js"></script>
   <script src="app.js"></script>
 </body>

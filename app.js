@@ -1,5 +1,18 @@
 // app.js
+// Check if we're in full window mode
+function checkFullWindowMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFullWindow = urlParams.get('fullwindow') === 'true';
+
+    if (isFullWindow) {
+        document.body.classList.add('full-window-mode');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if we're in full window mode
+    checkFullWindowMode();
+
     const db = new NoteDatabase();
     let currentNote = null;
     let saveTimeout;
@@ -22,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteNoteBtn = document.getElementById('delete-note-btn');
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
     const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    const openExtensionButton = document.getElementById('open-extension-button');
 
     // Initialize the tag manager
     tagManager = new TagManager(db);
@@ -231,7 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
         modalManager.closeActiveModal();
     }
 
-    // New manager functions
+    // New function to open extension in a browser window
+    function openExtensionInBrowser() {
+        const extensionUrl = chrome.runtime.getURL('index.html?fullwindow=true');
+        chrome.tabs.create({ url: extensionUrl });
+    }
+
+    // Manager functions
     function openTagsManager() {
         modalManager.open('tags-manager-modal');
         tagManager.loadTagsManager();
@@ -262,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tags-manager-button').addEventListener('click', openTagsManager);
         document.getElementById('backup-manager-button').addEventListener('click', openBackupManager);
         document.getElementById('appearance-manager-button').addEventListener('click', openAppearanceManager);
+        document.getElementById('open-extension-button').addEventListener('click', openExtensionInBrowser);
 
         // Add tag button inside Tags Manager modal
         document.getElementById('add-tag-manager-btn').addEventListener('click', () => {
