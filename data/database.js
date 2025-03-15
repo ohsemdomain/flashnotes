@@ -340,6 +340,46 @@ class NoteDatabase {
   }
 
   /**
+   * Restore data from Google Drive backup
+   * @returns {Promise<boolean>} Success status
+   */
+  async restoreFromDrive() {
+    if (!this.driveService || !this.userService || !this.userService.isUserAuthenticated()) {
+      return false;
+    }
+
+    try {
+      // Get backup data from Drive
+      const backupData = await this.driveService.readBackupData();
+      if (!backupData || !backupData.notes) {
+        console.log('No valid backup data found');
+        return false;
+      }
+
+      // Create a new data object
+      const newData = {
+        notes: backupData.notes || [],
+        tags: backupData.tags || [],
+        tagColors: backupData.tagColors || {},
+        lastId: backupData.lastId || 0,
+        lastBackupTime: new Date().toISOString() // Set current time as last backup time
+      };
+
+      // Save to local storage
+      await this.setData(newData);
+
+      // Notify backup state listeners
+      this.notifyBackupListeners();
+
+      console.log('Backup restored successfully:', backupData.notes.length, 'notes');
+      return true;
+    } catch (error) {
+      console.error('Error restoring from Drive:', error);
+      return false;
+    }
+  }
+
+  /**
    * Add a listener for backup state changes
    * @param {Function} listener - Callback function
    */

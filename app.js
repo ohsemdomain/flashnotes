@@ -144,22 +144,51 @@ document.addEventListener('DOMContentLoaded', () => {
      * Initialize the app UI once authenticated
      */
     async function initializeAppUI() {
+        // First check if there's a backup on Drive
+        const hasBackup = await checkForBackup();
+
         // Load notes
         await window.noteUI.loadNotes();
 
-        // If there are no notes, create a default one
+        // If there are no notes after checking for backup, create a default one
         const notes = await noteService.getAllNotes();
         if (notes.length === 0) {
             const newNote = await noteService.createNote();
             await window.noteUI.loadNotes();
             await window.noteUI.selectNote(newNote.id);
+
+            // Perform initial backup after creating default note
+            await window.db.backupToDrive();
         } else {
             // Select the first note
             await window.noteUI.selectNote(notes[0].id);
-        }
 
-        // Check if we need to perform a daily backup
-        await checkDailyBackup();
+            // If we didn't just restore a backup, check for daily backup
+            if (!hasBackup) {
+                await checkDailyBackup();
+            }
+        }
+    }
+
+    /**
+     * Check if there's a backup on Drive and restore it if needed
+     * @returns {Promise<boolean>} True if backup was found and restored
+     */
+    async function checkForBackup() {
+        try {
+            const backupExists = await window.driveService.checkBackupExists();
+
+            if (backupExists) {
+                console.log('Backup found on Drive, restoring...');
+                const success = await window.db.restoreFromDrive();
+                return success;
+            }
+
+            return false;
+        } catch (error) {
+            console.error('Error checking for backup:', error);
+            return false;
+        }
     }
 
     /**

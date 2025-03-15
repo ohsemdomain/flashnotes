@@ -4,7 +4,7 @@
  * 
  * Handles all Google Drive operations, including:
  * - Creation and management of app folders
- * - File operations (create, update)
+ * - File operations (create, update, read)
  * - Backup functionality
  * 
  * This service requires a UserService instance to handle authentication.
@@ -15,6 +15,7 @@ class DriveService {
         this.appFolderName = 'Flash Notes';
         this.appFolderId = null;
         this.initialized = false;
+        this.backupFileName = 'flash_notes_backup.json';
     }
 
     /**
@@ -213,6 +214,40 @@ class DriveService {
     }
 
     /**
+     * Read a file from Google Drive
+     * @param {string} fileId - ID of the file to read
+     * @returns {Promise<Object|Array|null>} Parsed content or null if failed
+     */
+    async readFile(fileId) {
+        try {
+            await this.initialize();
+
+            const token = this.userService.getAuthToken();
+            if (!token) {
+                throw new Error('Not authenticated');
+            }
+
+            const response = await fetch(
+                `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to read file: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error reading file:', error);
+            return null;
+        }
+    }
+
+    /**
      * Find a file by name in the app folder
      * @param {string} fileName - Name of the file to find
      * @returns {Promise<Object|null>} File metadata or null if not found
@@ -254,6 +289,45 @@ class DriveService {
     }
 
     /**
+     * Check if a backup file exists in Drive
+     * @returns {Promise<boolean>} Whether a backup exists
+     */
+    async checkBackupExists() {
+        try {
+            await this.initialize();
+            const file = await this.findFile(this.backupFileName);
+            return !!file;
+        } catch (error) {
+            console.error('Error checking if backup exists:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Read backup data from Drive
+     * @returns {Promise<Object|null>} Backup data or null if not found
+     */
+    async readBackupData() {
+        try {
+            await this.initialize();
+
+            // Find the backup file
+            const file = await this.findFile(this.backupFileName);
+            if (!file) {
+                console.log('No backup file found');
+                return null;
+            }
+
+            // Read the backup data
+            const backupData = await this.readFile(file.id);
+            return backupData;
+        } catch (error) {
+            console.error('Error reading backup data:', error);
+            return null;
+        }
+    }
+
+    /**
      * Backup all notes and tags to Google Drive
      * @param {Array} notes - Array of notes
      * @param {Array} tags - Array of tags
@@ -273,16 +347,16 @@ class DriveService {
                 notes: notes,
                 tags: tags,
                 tagColors: tagColors,
+                lastId: Math.max(0, ...notes.map(note => note.id)),
                 backupDate: new Date().toISOString()
             };
 
             // Find existing backup file or create a new one
-            const fileName = 'flash_notes_backup.json';
-            const existingFile = await this.findFile(fileName);
+            const existingFile = await this.findFile(this.backupFileName);
 
             // Save the backup
             const fileId = await this.saveFile(
-                fileName,
+                this.backupFileName,
                 backupData,
                 existingFile ? existingFile.id : null
             );
