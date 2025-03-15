@@ -22,6 +22,7 @@ class TagUI {
         this.selectedTagColor = '#e4e4e4'; // Default tag color
         this.editingTagColor = '#e4e4e4'; // For tag editing
         this.currentNote = null;
+        this.cachedTagColors = {}; // Add cache for tag colors
 
         this.initElements();
         this.initEventListeners();
@@ -51,6 +52,38 @@ class TagUI {
         // Color options
         this.colorOptions = document.querySelectorAll('.tag-colors .color-option');
         this.editColorOptions = document.querySelectorAll('#edit-tag-colors .color-option');
+
+        // Cache tag colors on initialization
+        this.cacheAllTagColors();
+    }
+
+    /**
+     * Cache all tag colors for better performance
+     */
+    async cacheAllTagColors() {
+        try {
+            const tagColors = await this.tagService.getAllTagsWithColors();
+            tagColors.forEach(tag => {
+                this.cachedTagColors[tag.name] = tag.color;
+            });
+        } catch (error) {
+            console.error('Error caching tag colors:', error);
+        }
+    }
+
+    /**
+     * Get tag color from cache or service
+     * @param {string} tagName - The tag name
+     * @returns {Promise<string>} Tag color
+     */
+    async getTagColor(tagName) {
+        if (this.cachedTagColors[tagName]) {
+            return this.cachedTagColors[tagName];
+        }
+
+        const color = await this.tagService.getTagColor(tagName);
+        this.cachedTagColors[tagName] = color;
+        return color;
     }
 
     /**
@@ -185,6 +218,9 @@ class TagUI {
      * Load tags into the dropdown menu
      */
     async loadTagsDropdown() {
+        // Refresh tag color cache
+        await this.cacheAllTagColors();
+
         const tags = await this.tagService.getAllTagsWithColors();
         this.tagsDropdownList.innerHTML = '';
 
@@ -251,12 +287,17 @@ class TagUI {
      * Render the tags for the current note
      */
     async renderNoteTags() {
+        // Clear existing tags first
         this.tagsList.innerHTML = '';
 
-        if (!this.currentNote) return;
+        if (!this.currentNote || !this.currentNote.tags || this.currentNote.tags.length === 0) return;
 
-        for (const tagName of this.currentNote.tags) {
-            const tagColor = await this.tagService.getTagColor(tagName);
+        // First deduplicate tags to avoid rendering duplicates
+        const uniqueTags = [...new Set(this.currentNote.tags)];
+
+        for (const tagName of uniqueTags) {
+            // Use cached tag color when possible
+            const tagColor = await this.getTagColor(tagName);
 
             // Use helper to create tag element
             const tagElement = TagHelper.createTagElement(
@@ -273,6 +314,9 @@ class TagUI {
      * Load tags into the tags manager
      */
     async loadTagsManager() {
+        // Refresh tag color cache
+        await this.cacheAllTagColors();
+
         const tags = await this.tagService.getAllTagsWithColors();
         this.tagsManagerList.innerHTML = '';
 
@@ -329,7 +373,7 @@ class TagUI {
      * @param {string} tagName - The tag name to edit
      */
     async showEditTagModal(tagName) {
-        const tagColor = await this.tagService.getTagColor(tagName);
+        const tagColor = await this.getTagColor(tagName);
 
         // Store the current active modal (Tags Manager) before opening a new one
         modalManager.lastOpenedModal = 'tags-manager-modal';
@@ -365,6 +409,9 @@ class TagUI {
         // Add to global tags
         await this.tagService.addTag(tagName, this.selectedTagColor);
 
+        // Update cache
+        this.cachedTagColors[tagName] = this.selectedTagColor;
+
         // Close the create tag modal and return to tags manager
         modalManager.closeActiveModal();
 
@@ -391,6 +438,10 @@ class TagUI {
 
         // Update the tag
         await this.tagService.updateTag(originalName, newName, this.editingTagColor);
+
+        // Update cache
+        delete this.cachedTagColors[originalName];
+        this.cachedTagColors[newName] = this.editingTagColor;
 
         // Update current note reference if needed
         if (this.currentNote && this.currentNote.tags.includes(originalName)) {
@@ -429,6 +480,9 @@ class TagUI {
         // Use helper for confirmation dialog
         if (TagHelper.confirmAction(`Are you sure you want to delete the tag "${tagName}"? It will be removed from all notes.`)) {
             await this.tagService.removeTag(tagName);
+
+            // Update cache
+            delete this.cachedTagColors[tagName];
 
             // Update current note reference if needed
             if (this.currentNote && this.currentNote.tags.includes(tagName)) {

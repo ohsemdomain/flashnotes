@@ -53,8 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show the app and hide the welcome screen
             showApp();
 
-            // Initialize the application UI
-            await initializeAppUI();
+            // Initialize the application UI with focus on speed
+            initializeAppUIFast();
+            
+            // Schedule background tasks for after UI is loaded
+            setTimeout(() => {
+                performBackgroundTasks();
+            }, 2000); // Delay background tasks by 2 seconds
         } else {
             console.log('User signed out');
 
@@ -86,6 +91,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (welcomeSignInButton) {
             welcomeSignInButton.addEventListener('click', () => {
                 window.userService.authenticate(true)
+                    .then(async (isAuthenticated) => {
+                        if (isAuthenticated) {
+                            // After first authentication, check for backup once
+                            const hasBackup = await checkForBackup();
+                            
+                            // If no backup was found, initialize with default content
+                            if (!hasBackup) {
+                                await initializeFirstTimeContent();
+                            }
+                        }
+                    })
                     .catch(error => {
                         console.error('Authentication error:', error);
                     });
@@ -93,14 +109,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Try to silent authenticate on startup
-        const isAuthenticated = await window.userService.authenticate(false);
+        try {
+            const isAuthenticated = await window.userService.authenticate(false);
 
-        if (isAuthenticated) {
-            // User is authenticated, show the app
-            showApp();
-            await initializeAppUI();
-        } else {
-            // User is not authenticated, show welcome screen
+            if (isAuthenticated) {
+                // User is authenticated, show the app
+                showApp();
+                await initializeAppUIFast();
+                
+                // Schedule background tasks
+                setTimeout(() => {
+                    performBackgroundTasks();
+                }, 2000); // Delay background tasks by 2 seconds
+            } else {
+                // User is not authenticated, show welcome screen
+                hideApp();
+            }
+        } catch (error) {
+            console.error('Silent auth error:', error);
             hideApp();
         }
 
@@ -141,41 +167,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Initialize the app UI once authenticated
+     * Fast initialization of the app UI - prioritizes local data loading
      */
-    async function initializeAppUI() {
-        // First check if there's a backup on Drive
-        const hasBackup = await checkForBackup();
-
-        // Load notes
+    async function initializeAppUIFast() {
+        // Load notes immediately from local storage
         await window.noteUI.loadNotes();
 
-        // If there are no notes after checking for backup, create a default one
+        // Get notes to check if we need to create a default note
         const notes = await noteService.getAllNotes();
+        
+        // If no notes exist, create a default one
         if (notes.length === 0) {
             const newNote = await noteService.createNote();
             await window.noteUI.loadNotes();
             await window.noteUI.selectNote(newNote.id);
-
-            // Perform initial backup after creating default note
-            await window.db.backupToDrive();
         } else {
             // Select the first note
             await window.noteUI.selectNote(notes[0].id);
+        }
+    }
 
-            // If we didn't just restore a backup, check for daily backup
-            if (!hasBackup) {
-                await checkDailyBackup();
-            }
+    /**
+     * Perform background tasks after UI is loaded
+     */
+    async function performBackgroundTasks() {
+        // These tasks run in the background after the UI is loaded
+        try {
+            // Check if daily backup is needed
+            await checkDailyBackup();
+        } catch (error) {
+            console.error('Error in background tasks:', error);
+        }
+    }
+
+    /**
+     * Initialize first time content after authentication
+     */
+    async function initializeFirstTimeContent() {
+        // Create a default note for first-time users
+        const notes = await noteService.getAllNotes();
+        if (notes.length === 0) {
+            await noteService.createNote("Welcome to Flash Notes", "Start taking notes with Flash Notes! Your notes are saved automatically and backed up to Google Drive.");
+            await window.noteUI.loadNotes();
         }
     }
 
     /**
      * Check if there's a backup on Drive and restore it if needed
+     * This is only called once after initial authentication
      * @returns {Promise<boolean>} True if backup was found and restored
      */
     async function checkForBackup() {
         try {
+            // Check if this is the first time after authentication
+            const data = await window.db.getData();
+            
+            // If we already have data locally, don't check for backup
+            if (data && data.notes && data.notes.length > 0) {
+                return false;
+            }
+            
+            console.log('Checking for existing backup on Drive...');
             const backupExists = await window.driveService.checkBackupExists();
 
             if (backupExists) {
@@ -193,12 +245,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Check if we need to perform a daily backup
+     * This runs in the background after UI is loaded
      */
     async function checkDailyBackup() {
         const lastBackupTime = await window.db.getLastBackupTime();
 
         if (!lastBackupTime) {
             // No backup yet, perform initial backup
+            console.log('No previous backup found, creating initial backup...');
             await window.db.backupToDrive();
             return;
         }
@@ -209,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if the last backup was more than 24 hours ago
         if (currentDate.getTime() - lastBackupDate.getTime() > 24 * 60 * 60 * 1000) {
             // It's been more than a day, perform backup
+            console.log('Daily backup needed, running in background...');
             await window.db.backupToDrive();
         }
     }
