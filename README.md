@@ -2,7 +2,7 @@
 
 ## Description
 
-Flash Notes is a Chrome extension that allows you to create and manage multiple notes with tags. It provides a simple and intuitive interface for quickly jotting down your thoughts and organizing them efficiently.
+Flash Notes is a Chrome extension that allows you to create and manage multiple notes with tags. It provides a simple and intuitive interface for quickly jotting down your thoughts and organizing them efficiently. With Google account integration, your notes sync across devices automatically.
 
 ## Features
 
@@ -11,8 +11,8 @@ Flash Notes is a Chrome extension that allows you to create and manage multiple 
 *   **Search notes:** Quickly find specific notes using the search bar.
 *   **Text formatting:** Format your notes with bold, italic, underline, and lists.
 *   **Edit notes:** Edit note titles and content.
-*   **Settings Modal:** Includes a settings modal for managing tags.
-*   **Data persistence:** Your notes are saved locally and persist across browser sessions.
+*   **Google Drive sync:** Automatically sync your notes across devices using your Google account.
+*   **Settings Modal:** Includes settings for managing tags and sync preferences.
 *   **Full window mode:** Open the extension in a browser tab for a larger workspace.
 
 ## Installation
@@ -30,10 +30,20 @@ Flash Notes is a Chrome extension that allows you to create and manage multiple 
 3.  Enter a title and content for your note.
 4.  Click the tag button to add tags to your note. You can create new tags or select existing ones.
 5.  Use the formatting toolbar to style your notes.
-6.  Click the settings button (gear icon) to manage your tags (create, edit, delete).
+6.  Click the settings button (gear icon) to manage your tags.
 7.  Use the search bar to find notes by title, content, or tag.
 8.  Click on a note in the sidebar to view and edit it.
-9.  Use the open in browser button to work in full window mode.
+9.  Use the account button to sign in with your Google account and enable sync.
+10. Use the open in browser button to work in full window mode.
+
+## Google Integration
+
+Flash Notes now features seamless Google integration:
+
+1. **Sign in with Google:** Click the account button to sign in with your Google account.
+2. **Automatic sync:** When enabled, your notes automatically sync across devices.
+3. **Manual backup & restore:** Create manual backups and restore your data when needed.
+4. **Privacy:** Your data is securely stored in your personal Google Drive account.
 
 ## Project Structure
 
@@ -41,25 +51,29 @@ The codebase is organized in a modular structure for better maintainability:
 
 ```
 /
-  - app.js                  # Main application
-  - flash-notes-icon.png    # Extension icon
-  - index.html              # Main HTML file
-  - manifest.json           # Chrome extension manifest
-  - README.md               # Project documentation
-  - style.css               # Stylesheet
-  /data
-    - database.js           # Database operations
-  /helper
-    - noteHelper.js         # Note helper functions
-    - tagHelper.js          # Tag helper functions
-  /services
-    - noteService.js        # Note-related business logic
-    - tagService.js         # Tag-related business logic
-  /ui
-    - formatUI.js           # Formatting toolbar
-    - modal.js              # Modal management
-    - noteUI.js             # Note UI components
-    - tagUI.js              # Tag UI components
+app.js                  # Main application
+flash-notes-icon.png    # Extension icon
+index.html              # Main HTML file
+manifest.json           # Chrome extension manifest
+README.md               # Project documentation
+style.css               # Stylesheet
+/data
+
+database.js           # Database operations
+/helper
+noteHelper.js         # Note helper functions
+tagHelper.js          # Tag helper functions
+/services
+noteService.js        # Note-related business logic
+tagService.js         # Tag-related business logic
+userService.js        # User authentication and profile management
+driveService.js       # Google Drive integration
+/ui
+formatUI.js           # Formatting toolbar
+modal.js              # Modal management
+noteUI.js             # Note UI components
+tagUI.js              # Tag UI components
+accountUI.js          # Account and sync UI management
 ```
 
 ### Core Components
@@ -68,11 +82,14 @@ The codebase is organized in a modular structure for better maintainability:
 - **Services Layer**:
   - **noteService.js**: Manages note operations
   - **tagService.js**: Manages tag operations
+  - **userService.js**: Handles user authentication and profile management
+  - **driveService.js**: Manages Google Drive operations
 - **UI Layer**:
   - **modal.js**: Handles modal dialogs
   - **noteUI.js**: Handles note list and editor UI
   - **tagUI.js**: Manages tag-related UI
   - **formatUI.js**: Manages formatting toolbar
+  - **accountUI.js**: Manages account and sync UI
 - **App (app.js)**: Initializes and coordinates the application
 
 ## Technologies Used
@@ -82,6 +99,8 @@ The codebase is organized in a modular structure for better maintainability:
 *   JavaScript
 *   Chrome Extension API
 *   Chrome Storage API
+*   Google OAuth 2.0
+*   Google Drive API
 
 ## Contributing
 
