@@ -13,7 +13,24 @@
 </head>
 
 <body>
-  <div class="container">
+  <!-- Welcome screen (shown when user is not authenticated) -->
+  <div id="welcome-screen" class="welcome-container">
+    <div class="welcome-content">
+      <img src="flash-notes-icon.png" alt="Flash Notes" class="welcome-logo">
+      <h1>Welcome to Flash Notes</h1>
+      <p>Your notes, backed up to Google Drive</p>
+      <p class="welcome-description">Create and manage your notes with Flash Notes. All your data is securely stored in
+        your Google Drive account.</p>
+      <button id="welcome-signin-button" class="google-signin-button">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18"
+          height="18">
+        Sign in with Google
+      </button>
+    </div>
+  </div>
+
+  <!-- Main app container (hidden until user is authenticated) -->
+  <div id="app-container" class="container" style="display: none;">
     <!-- Sidebar for notes list -->
     <div class="sidebar">
       <div class="sidebar-header">
@@ -46,7 +63,7 @@
         </button>
 
         <!-- Account button - takes full remaining space -->
-        <button id="account-button" title="Account & Sync">
+        <button id="account-button" title="Account & Backup">
           <div id="account-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
@@ -54,7 +71,7 @@
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
           </div>
-          <span id="account-status">Sign In</span>
+          <span id="account-status">Account</span>
         </button>
       </div>
     </div>
@@ -265,37 +282,16 @@
     </div>
   </div>
 
-  <!-- Login Modal -->
-  <div id="login-modal" class="modal">
+  <!-- Backup Settings Modal -->
+  <div id="backup-settings-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Sign in with Google</h3>
-        <button class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Sign in with your Google account to enable backup and sync features.</p>
-        <p>Your notes will be securely stored in your Google Drive account and be available across devices.</p>
-        <div style="text-align: center; margin-top: 20px;">
-          <button id="login-button" class="google-signin-button">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18"
-              height="18">
-            Sign in with Google
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sync Settings Modal -->
-  <div id="sync-settings-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Account & Sync Settings</h3>
+        <h3>Account & Backup Settings</h3>
         <button class="modal-close">&times;</button>
       </div>
       <div class="modal-body">
         <!-- Profile Section -->
-        <div id="profile-section" style="display: none;">
+        <div id="profile-section">
           <div class="profile-container">
             <img id="profile-picture" src="" alt="Profile" class="profile-picture">
             <div class="profile-info">
@@ -306,33 +302,12 @@
           </div>
         </div>
 
-        <!-- Sync Settings -->
-        <div class="sync-settings">
-          <h4>Google Drive Sync</h4>
-          <p>Automatically sync your notes across devices using Google Drive.</p>
-
-          <div class="toggle-container">
-            <label class="toggle">
-              <input type="checkbox" id="sync-toggle">
-              <span class="toggle-slider"></span>
-            </label>
-            <span class="toggle-label">Enable sync</span>
-          </div>
-
-          <p id="last-sync-time">Not synced yet</p>
-
-          <button id="sync-now-button" class="sync-button">Sync Now</button>
-        </div>
-
-        <!-- Backup & Restore Section -->
-        <div class="drive-backup-section" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
-          <h4>Backup & Restore</h4>
-          <p>Manually backup and restore your notes to Google Drive.</p>
-          <div class="button-group">
-            <button id="backup-google-drive" class="sync-button">Backup to Google Drive</button>
-            <button id="restore-google-drive" class="sync-button" style="background-color: #6c757d;">Restore from Google
-              Drive</button>
-          </div>
+        <!-- Backup Settings -->
+        <div class="backup-settings">
+          <h4>Google Drive Backup</h4>
+          <p>Your notes are automatically backed up daily to your Google Drive.</p>
+          <p id="last-backup-time">Not backed up yet</p>
+          <button id="backup-now-button" class="backup-button">Backup Now</button>
         </div>
       </div>
     </div>

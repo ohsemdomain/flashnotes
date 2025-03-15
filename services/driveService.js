@@ -4,9 +4,8 @@
  * 
  * Handles all Google Drive operations, including:
  * - Creation and management of app folders
- * - File operations (create, read, update)
- * - Backup and restore functionality
- * - Synchronization between local and cloud storage
+ * - File operations (create, update)
+ * - Backup functionality
  * 
  * This service requires a UserService instance to handle authentication.
  */
@@ -214,40 +213,6 @@ class DriveService {
     }
 
     /**
-     * Read a file from Google Drive
-     * @param {string} fileId - ID of the file to read
-     * @returns {Promise<Object|Array|null>} Parsed content or null if failed
-     */
-    async readFile(fileId) {
-        try {
-            await this.initialize();
-
-            const token = this.userService.getAuthToken();
-            if (!token) {
-                throw new Error('Not authenticated');
-            }
-
-            const response = await fetch(
-                `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`Failed to read file: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Error reading file:', error);
-            return null;
-        }
-    }
-
-    /**
      * Find a file by name in the app folder
      * @param {string} fileName - Name of the file to find
      * @returns {Promise<Object|null>} File metadata or null if not found
@@ -326,40 +291,6 @@ class DriveService {
         } catch (error) {
             console.error('Error creating backup:', error);
             return false;
-        }
-    }
-
-    /**
-     * Restore data from a Google Drive backup
-     * @returns {Promise<Object|null>} Restored data or null if failed
-     */
-    async restoreData() {
-        try {
-            await this.initialize();
-
-            // Find the backup file
-            const fileName = 'flash_notes_backup.json';
-            const file = await this.findFile(fileName);
-
-            if (!file) {
-                throw new Error('Backup file not found');
-            }
-
-            // Read the backup data
-            const backupData = await this.readFile(file.id);
-            if (!backupData) {
-                throw new Error('Failed to read backup data');
-            }
-
-            return {
-                notes: backupData.notes || [],
-                tags: backupData.tags || [],
-                tagColors: backupData.tagColors || {},
-                backupDate: backupData.backupDate
-            };
-        } catch (error) {
-            console.error('Error restoring from backup:', error);
-            return null;
         }
     }
 

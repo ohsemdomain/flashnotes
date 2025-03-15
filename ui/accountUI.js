@@ -5,8 +5,7 @@
  * Handles all account-related UI functionality, including:
  * - Login and logout UI
  * - User profile display
- * - Google Drive sync settings
- * - Google Drive backup and restore UI
+ * - Google Drive backup settings
  * 
  * This component manages all user interactions with Google account features
  * and communicates with the UserService and database for account operations.
@@ -35,32 +34,27 @@ class AccountUI {
         this.accountIcon = document.getElementById('account-icon');
         this.accountStatus = document.getElementById('account-status');
 
-        // Login modal elements
-        this.loginButton = document.getElementById('login-button');
+        // Welcome screen sign-in button
+        this.welcomeSignInButton = document.getElementById('welcome-signin-button');
 
-        // Sync settings modal elements
+        // Backup settings modal elements
         this.profileSection = document.getElementById('profile-section');
         this.profilePicture = document.getElementById('profile-picture');
         this.profileName = document.getElementById('profile-name');
         this.profileEmail = document.getElementById('profile-email');
         this.signOutButton = document.getElementById('sign-out-button');
 
-        this.syncToggle = document.getElementById('sync-toggle');
-        this.lastSyncTime = document.getElementById('last-sync-time');
-        this.syncNowButton = document.getElementById('sync-now-button');
-
-        // Google Drive backup elements (now in sync settings modal)
-        this.backupGoogleDrive = document.getElementById('backup-google-drive');
-        this.restoreGoogleDrive = document.getElementById('restore-google-drive');
+        this.lastBackupTime = document.getElementById('last-backup-time');
+        this.backupNowButton = document.getElementById('backup-now-button');
     }
 
     /**
      * Set up event listeners for account-related functionality
      */
     initEventListeners() {
-        // Login modal
-        if (this.loginButton) {
-            this.loginButton.addEventListener('click', () => this.login());
+        // Welcome screen login button
+        if (this.welcomeSignInButton) {
+            this.welcomeSignInButton.addEventListener('click', () => this.login());
         }
 
         // Sign out button
@@ -68,25 +62,23 @@ class AccountUI {
             this.signOutButton.addEventListener('click', () => this.signOut());
         }
 
-        // Sync toggle
-        if (this.syncToggle) {
-            this.syncToggle.addEventListener('change', () => this.toggleSync());
+        // Backup now button
+        if (this.backupNowButton) {
+            this.backupNowButton.addEventListener('click', () => this.backupNow());
         }
 
-        // Sync now button
-        if (this.syncNowButton) {
-            this.syncNowButton.addEventListener('click', () => this.syncNow());
+        // Add listener for backup state changes
+        if (this.db) {
+            this.db.addBackupStateListener(this.handleBackupStateChanged.bind(this));
         }
+    }
 
-        // Backup to Google Drive
-        if (this.backupGoogleDrive) {
-            this.backupGoogleDrive.addEventListener('click', () => this.backupToDrive());
-        }
-
-        // Restore from Google Drive
-        if (this.restoreGoogleDrive) {
-            this.restoreGoogleDrive.addEventListener('click', () => this.restoreFromDrive());
-        }
+    /**
+     * Handle backup state changes
+     * @param {Object} backupState - Backup state object
+     */
+    async handleBackupStateChanged(backupState) {
+        this.updateBackupInfo();
     }
 
     /**
@@ -117,7 +109,7 @@ class AccountUI {
             }
         }
 
-        // Update profile section in sync settings modal
+        // Update profile section in backup settings modal
         if (this.profileSection) {
             if (isAuthenticated && currentUser) {
                 // Show user profile
@@ -130,8 +122,8 @@ class AccountUI {
             }
         }
 
-        // Update backup options in sync settings modal
-        await this.loadBackupOptions();
+        // Update backup info
+        await this.updateBackupInfo();
     }
 
     /**
@@ -142,11 +134,6 @@ class AccountUI {
             const token = await this.userService.authenticate(true);
             if (token) {
                 console.log('Successfully logged in');
-                modalManager.closeActiveModal();
-
-                // Open sync settings modal after successful login
-                modalManager.open('sync-settings-modal');
-                this.loadSyncSettings();
             }
         } catch (error) {
             console.error('Login error:', error);
@@ -173,226 +160,64 @@ class AccountUI {
     }
 
     /**
-     * Toggle Google Drive sync
+     * Trigger a manual backup
      */
-    async toggleSync() {
-        const enabled = this.syncToggle.checked;
-
-        try {
-            // If enabling sync and not authenticated, try to authenticate
-            if (enabled && !this.userService.isUserAuthenticated()) {
-                const token = await this.userService.authenticate(true);
-                if (!token) {
-                    this.syncToggle.checked = false;
-                    return;
-                }
-            }
-
-            // Update sync setting
-            await this.db.setSyncEnabled(enabled);
-
-            // Update UI
-            this.loadSyncSettings();
-
-            // If enabling, do initial sync
-            if (enabled) {
-                await this.syncNow();
-            }
-        } catch (error) {
-            console.error('Error toggling sync:', error);
-            // Revert toggle state
-            this.syncToggle.checked = !enabled;
-            alert('Failed to update sync settings. Please try again.');
-        }
-    }
-
-    /**
-     * Trigger a manual sync
-     */
-    async syncNow() {
-        if (!this.userService.isUserAuthenticated()) {
-            alert('Please sign in to sync with Google Drive.');
-            return;
-        }
-
-        try {
-            this.syncNowButton.disabled = true;
-            this.syncNowButton.textContent = 'Syncing...';
-
-            const success = await this.db.forceSync();
-
-            this.syncNowButton.disabled = false;
-            this.syncNowButton.textContent = 'Sync Now';
-
-            if (success) {
-                // Update sync status
-                this.loadSyncSettings();
-
-                // Reload notes to reflect changes
-                if (window.noteUI) {
-                    await window.noteUI.loadNotes();
-                }
-            } else {
-                alert('Sync failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('Sync error:', error);
-            this.syncNowButton.disabled = false;
-            this.syncNowButton.textContent = 'Sync Now';
-            alert('Sync failed. Please try again.');
-        }
-    }
-
-    /**
-     * Load sync settings into the UI
-     */
-    async loadSyncSettings() {
-        // Update profile section
-        this.updateUI();
-
-        // Check if sync is enabled
-        const syncEnabled = await this.db.isSyncEnabled();
-        if (this.syncToggle) {
-            this.syncToggle.checked = syncEnabled;
-        }
-
-        // Update last sync time
-        const lastSyncTime = await this.db.getLastSyncTime();
-        if (this.lastSyncTime) {
-            if (lastSyncTime) {
-                const date = new Date(lastSyncTime);
-                this.lastSyncTime.textContent = `Last synced: ${date.toLocaleString()}`;
-            } else {
-                this.lastSyncTime.textContent = 'Not synced yet';
-            }
-        }
-
-        // Enable/disable sync now button based on auth state
-        if (this.syncNowButton) {
-            this.syncNowButton.disabled = !this.userService.isUserAuthenticated() || !syncEnabled;
-        }
-
-        // Enable/disable backup buttons based on auth state
-        this.loadBackupOptions();
-    }
-
-    /**
-     * Load backup options into the sync settings UI
-     */
-    async loadBackupOptions() {
-        const isAuthenticated = this.userService.isUserAuthenticated();
-
-        // Enable/disable Google Drive backup options based on auth state
-        if (this.backupGoogleDrive) {
-            this.backupGoogleDrive.disabled = !isAuthenticated;
-        }
-
-        if (this.restoreGoogleDrive) {
-            this.restoreGoogleDrive.disabled = !isAuthenticated;
-        }
-    }
-
-    /**
-     * Backup notes to Google Drive
-     */
-    async backupToDrive() {
+    async backupNow() {
         if (!this.userService.isUserAuthenticated()) {
             alert('Please sign in to backup to Google Drive.');
             return;
         }
 
         try {
-            this.backupGoogleDrive.disabled = true;
-            this.backupGoogleDrive.textContent = 'Backing up...';
+            this.backupNowButton.disabled = true;
+            this.backupNowButton.textContent = 'Backing up...';
 
-            // Get all data
-            const notes = await this.db.getAllNotes();
-            const tags = await this.db.getAllTags();
-            const tagColors = {};
+            const success = await this.db.backupToDrive();
 
-            // Get tag colors
-            for (const tag of tags) {
-                tagColors[tag] = await this.db.getTagColor(tag);
-            }
-
-            // Send to Google Drive
-            const driveService = window.driveService;
-            const success = await driveService.backupData(notes, tags, tagColors);
-
-            this.backupGoogleDrive.disabled = false;
-            this.backupGoogleDrive.textContent = 'Backup to Google Drive';
+            this.backupNowButton.disabled = false;
+            this.backupNowButton.textContent = 'Backup Now';
 
             if (success) {
+                // Update backup status
+                this.updateBackupInfo();
                 alert('Backup successful!');
             } else {
                 alert('Backup failed. Please try again.');
             }
         } catch (error) {
             console.error('Backup error:', error);
-            this.backupGoogleDrive.disabled = false;
-            this.backupGoogleDrive.textContent = 'Backup to Google Drive';
+            this.backupNowButton.disabled = false;
+            this.backupNowButton.textContent = 'Backup Now';
             alert('Backup failed. Please try again.');
         }
     }
 
     /**
-     * Restore notes from Google Drive
+     * Load backup settings into the UI
      */
-    async restoreFromDrive() {
-        if (!this.userService.isUserAuthenticated()) {
-            alert('Please sign in to restore from Google Drive.');
-            return;
+    async loadBackupSettings() {
+        // Update profile section
+        this.updateUI();
+    }
+
+    /**
+     * Update backup information in the UI
+     */
+    async updateBackupInfo() {
+        // Update last backup time
+        const lastBackupTime = await this.db.getLastBackupTime();
+        if (this.lastBackupTime) {
+            if (lastBackupTime) {
+                const date = new Date(lastBackupTime);
+                this.lastBackupTime.textContent = `Last backed up: ${date.toLocaleString()}`;
+            } else {
+                this.lastBackupTime.textContent = 'Not backed up yet';
+            }
         }
 
-        if (!confirm('This will replace your current notes with the ones from Google Drive. Continue?')) {
-            return;
-        }
-
-        try {
-            this.restoreGoogleDrive.disabled = true;
-            this.restoreGoogleDrive.textContent = 'Restoring...';
-
-            // Get data from Google Drive
-            const driveService = window.driveService;
-            const backupData = await driveService.restoreData();
-
-            if (!backupData) {
-                alert('No backup found on Google Drive.');
-                this.restoreGoogleDrive.disabled = false;
-                this.restoreGoogleDrive.textContent = 'Restore from Google Drive';
-                return;
-            }
-
-            // Get current data
-            const currentData = await this.db.getData();
-
-            // Create merged data
-            const mergedData = {
-                notes: backupData.notes || [],
-                tags: backupData.tags || [],
-                tagColors: backupData.tagColors || {},
-                lastId: Math.max(currentData.lastId, ...backupData.notes.map(n => n.id)),
-                syncEnabled: currentData.syncEnabled,
-                lastSyncTime: new Date().toISOString()
-            };
-
-            // Save to database
-            await this.db.setData(mergedData);
-
-            this.restoreGoogleDrive.disabled = false;
-            this.restoreGoogleDrive.textContent = 'Restore from Google Drive';
-
-            // Reload notes
-            if (window.noteUI) {
-                await window.noteUI.loadNotes();
-            }
-
-            alert('Restore successful!');
-        } catch (error) {
-            console.error('Restore error:', error);
-            this.restoreGoogleDrive.disabled = false;
-            this.restoreGoogleDrive.textContent = 'Restore from Google Drive';
-            alert('Restore failed. Please try again.');
+        // Enable/disable backup now button based on auth state
+        if (this.backupNowButton) {
+            this.backupNowButton.disabled = !this.userService.isUserAuthenticated();
         }
     }
 }

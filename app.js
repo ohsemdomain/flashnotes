@@ -50,16 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authState.isAuthenticated) {
             console.log('User signed in:', authState.currentUser.email);
 
-            // Check if we need to sync data
-            const syncEnabled = await window.db.isSyncEnabled();
-            if (syncEnabled) {
-                // Sync data from Drive on sign-in
-                await window.db.syncFromDrive();
-                // Reload notes list to reflect any changes
-                await window.noteUI.loadNotes();
-            }
+            // Show the app and hide the welcome screen
+            showApp();
+
+            // Initialize the application UI
+            await initializeAppUI();
         } else {
             console.log('User signed out');
+
+            // Show the welcome screen and hide the app
+            hideApp();
         }
 
         // Update account UI
@@ -71,22 +71,79 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add auth state listener
     window.userService.addAuthStateListener(window.onAuthStateChanged);
 
-    // Initialize the application
-    initApp();
+    // Initialize the authentication flow
+    initAuthFlow();
 
     /**
-     * Initialize the application
+     * Initialize the authentication flow
      */
-    async function initApp() {
+    async function initAuthFlow() {
         // Register modals
         registerModals();
 
-        // Initialize utility buttons
-        initUtilityButtons();
+        // Add welcome screen sign-in button listener
+        const welcomeSignInButton = document.getElementById('welcome-signin-button');
+        if (welcomeSignInButton) {
+            welcomeSignInButton.addEventListener('click', () => {
+                window.userService.authenticate(true)
+                    .catch(error => {
+                        console.error('Authentication error:', error);
+                    });
+            });
+        }
 
         // Try to silent authenticate on startup
-        await window.userService.authenticate(false);
+        const isAuthenticated = await window.userService.authenticate(false);
 
+        if (isAuthenticated) {
+            // User is authenticated, show the app
+            showApp();
+            await initializeAppUI();
+        } else {
+            // User is not authenticated, show welcome screen
+            hideApp();
+        }
+
+        // Initialize utility buttons
+        initUtilityButtons();
+    }
+
+    /**
+     * Show the main app and hide the welcome screen
+     */
+    function showApp() {
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const appContainer = document.getElementById('app-container');
+
+        if (welcomeScreen) {
+            welcomeScreen.style.display = 'none';
+        }
+
+        if (appContainer) {
+            appContainer.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Hide the main app and show the welcome screen
+     */
+    function hideApp() {
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const appContainer = document.getElementById('app-container');
+
+        if (welcomeScreen) {
+            welcomeScreen.style.display = 'flex';
+        }
+
+        if (appContainer) {
+            appContainer.style.display = 'none';
+        }
+    }
+
+    /**
+     * Initialize the app UI once authenticated
+     */
+    async function initializeAppUI() {
         // Load notes
         await window.noteUI.loadNotes();
 
@@ -99,6 +156,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Select the first note
             await window.noteUI.selectNote(notes[0].id);
+        }
+
+        // Check if we need to perform a daily backup
+        await checkDailyBackup();
+    }
+
+    /**
+     * Check if we need to perform a daily backup
+     */
+    async function checkDailyBackup() {
+        const lastBackupTime = await window.db.getLastBackupTime();
+
+        if (!lastBackupTime) {
+            // No backup yet, perform initial backup
+            await window.db.backupToDrive();
+            return;
+        }
+
+        const lastBackupDate = new Date(lastBackupTime);
+        const currentDate = new Date();
+
+        // Check if the last backup was more than 24 hours ago
+        if (currentDate.getTime() - lastBackupDate.getTime() > 24 * 60 * 60 * 1000) {
+            // It's been more than a day, perform backup
+            await window.db.backupToDrive();
         }
     }
 
@@ -124,9 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
         modalManager.register('tags-manager-modal');
         modalManager.register('appearance-manager-modal');
 
-        // Register modals for Google integration
-        modalManager.register('login-modal');
-        modalManager.register('sync-settings-modal');
+        // Register backup modal
+        modalManager.register('backup-settings-modal');
     }
 
     /**
@@ -162,12 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (accountButton) {
             accountButton.addEventListener('click', () => {
                 if (window.userService.isUserAuthenticated()) {
-                    modalManager.open('sync-settings-modal');
+                    modalManager.open('backup-settings-modal');
                     if (window.accountUI) {
-                        window.accountUI.loadSyncSettings();
+                        window.accountUI.loadBackupSettings();
                     }
-                } else {
-                    modalManager.open('login-modal');
                 }
             });
         }

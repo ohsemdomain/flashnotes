@@ -17,7 +17,7 @@ class UserService {
         this.authToken = null;
         this.isAuthenticated = false;
         this.authListeners = [];
-        
+
         // Try to load saved auth state on initialization
         this.loadAuthState();
     }
@@ -36,11 +36,11 @@ class UserService {
             if (authData) {
                 this.currentUser = authData.user;
                 this.isAuthenticated = true;
-                
+
                 // We don't store the token in local storage for security reasons
                 // Instead, we'll request a fresh one using the silent authentication
                 await this.refreshAuthToken(false);
-                
+
                 // Notify listeners of authentication state change
                 this.notifyAuthListeners();
             }
@@ -88,19 +88,19 @@ class UserService {
             if (token) {
                 this.authToken = token;
                 this.isAuthenticated = true;
-                
+
                 // Fetch user profile
                 await this.fetchUserProfile();
-                
+
                 // Save auth state
                 await this.saveAuthState();
-                
+
                 // Notify listeners
                 this.notifyAuthListeners();
-                
+
                 return token;
             }
-            
+
             return null;
         } catch (error) {
             console.error('Authentication error:', error);
@@ -114,7 +114,20 @@ class UserService {
      * @returns {Promise<string|null>} The fresh auth token or null if failed
      */
     async refreshAuthToken(interactive = false) {
-        return this.authenticate(interactive);
+        try {
+            // Remove cached token first to ensure we get a fresh one
+            if (this.authToken) {
+                await new Promise((resolve) => {
+                    chrome.identity.removeCachedAuthToken({ token: this.authToken }, resolve);
+                });
+            }
+
+            // Get a new token
+            return this.authenticate(interactive);
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            return null;
+        }
     }
 
     /**
@@ -149,18 +162,28 @@ class UserService {
             this.currentUser = null;
             this.authToken = null;
             this.isAuthenticated = false;
-            
+
             // Clear saved auth state
             await new Promise(resolve => {
                 chrome.storage.local.remove('userAuthData', resolve);
             });
-            
+
             // Notify listeners
             this.notifyAuthListeners();
-            
+
             return true;
         } catch (error) {
             console.error('Sign out error:', error);
+
+            // Even if there's an error, ensure we clear local state
+            this.currentUser = null;
+            this.authToken = null;
+            this.isAuthenticated = false;
+            await new Promise(resolve => {
+                chrome.storage.local.remove('userAuthData', resolve);
+            });
+            this.notifyAuthListeners();
+
             return false;
         }
     }
@@ -186,7 +209,7 @@ class UserService {
             }
 
             const profileData = await response.json();
-            
+
             this.currentUser = {
                 id: profileData.id,
                 email: profileData.email,
@@ -232,6 +255,18 @@ class UserService {
     addAuthStateListener(listener) {
         if (typeof listener === 'function' && !this.authListeners.includes(listener)) {
             this.authListeners.push(listener);
+
+            // Call the listener immediately if we're already authenticated
+            if (this.isAuthenticated) {
+                try {
+                    listener({
+                        isAuthenticated: this.isAuthenticated,
+                        currentUser: this.currentUser
+                    });
+                } catch (error) {
+                    console.error('Error in auth state listener:', error);
+                }
+            }
         }
     }
 
@@ -254,7 +289,7 @@ class UserService {
             isAuthenticated: this.isAuthenticated,
             currentUser: this.currentUser
         };
-        
+
         this.authListeners.forEach(listener => {
             try {
                 listener(authState);
