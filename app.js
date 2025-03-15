@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize database
     window.db = new NoteDatabase();
 
+    // Initialize authentication and Drive services
+    window.userService = new UserService();
+    window.driveService = new DriveService(window.userService);
+
+    // Connect database with auth and drive services
+    window.db.setServices(window.userService, window.driveService);
+
     // Check if we're in full window mode
     checkFullWindowMode();
 
@@ -30,10 +37,39 @@ document.addEventListener('DOMContentLoaded', () => {
     window.formatUI = new FormatUI();
     window.tagUI = new TagUI(tagService);
 
+    // Initialize the account UI component
+    window.accountUI = new AccountUI(window.userService, window.db);
+
     // Register global callback for tag changes
     window.onTagsChanged = async function () {
         await window.noteUI.loadNotes();
     };
+
+    // Register global callback for authentication state changes
+    window.onAuthStateChanged = async function (authState) {
+        if (authState.isAuthenticated) {
+            console.log('User signed in:', authState.currentUser.email);
+
+            // Check if we need to sync data
+            const syncEnabled = await window.db.isSyncEnabled();
+            if (syncEnabled) {
+                // Sync data from Drive on sign-in
+                await window.db.syncFromDrive();
+                // Reload notes list to reflect any changes
+                await window.noteUI.loadNotes();
+            }
+        } else {
+            console.log('User signed out');
+        }
+
+        // Update account UI
+        if (window.accountUI) {
+            window.accountUI.updateUI();
+        }
+    };
+
+    // Add auth state listener
+    window.userService.addAuthStateListener(window.onAuthStateChanged);
 
     // Initialize the application
     initApp();
@@ -47,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize utility buttons
         initUtilityButtons();
+
+        // Try to silent authenticate on startup
+        await window.userService.authenticate(false);
 
         // Load notes
         await window.noteUI.loadNotes();
@@ -83,8 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
         modalManager.register('create-tag-modal');
         modalManager.register('edit-tag-modal');
         modalManager.register('tags-manager-modal');
-        modalManager.register('backup-manager-modal');
         modalManager.register('appearance-manager-modal');
+
+        // Register modals for Google integration
+        modalManager.register('login-modal');
+        modalManager.register('sync-settings-modal');
     }
 
     /**
@@ -92,29 +134,43 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function initUtilityButtons() {
         // Tags manager button
-        document.getElementById('tags-manager-button').addEventListener('click', () => {
-            modalManager.open('tags-manager-modal');
-            window.tagUI.loadTagsManager();
-        });
-
-        // Backup manager button
-        document.getElementById('backup-manager-button').addEventListener('click', () => {
-            modalManager.open('backup-manager-modal');
-        });
-
-        // Appearance manager button
-        document.getElementById('appearance-manager-button').addEventListener('click', () => {
-            modalManager.open('appearance-manager-modal');
-        });
+        const tagsManagerButton = document.getElementById('tags-manager-button');
+        if (tagsManagerButton) {
+            tagsManagerButton.addEventListener('click', () => {
+                modalManager.open('tags-manager-modal');
+                window.tagUI.loadTagsManager();
+            });
+        }
 
         // Open in browser button
-        document.getElementById('open-extension-button').addEventListener('click', openExtensionInBrowser);
+        const openExtensionButton = document.getElementById('open-extension-button');
+        if (openExtensionButton) {
+            openExtensionButton.addEventListener('click', openExtensionInBrowser);
+        }
 
         // Add tag button inside Tags Manager modal
-        document.getElementById('add-tag-manager-btn').addEventListener('click', () => {
-            modalManager.closeActiveModal(); // Close tags manager modal
-            window.tagUI.showCreateTagModal(); // Open create tag modal
-        });
+        const addTagManagerBtn = document.getElementById('add-tag-manager-btn');
+        if (addTagManagerBtn) {
+            addTagManagerBtn.addEventListener('click', () => {
+                modalManager.closeActiveModal(); // Close tags manager modal
+                window.tagUI.showCreateTagModal(); // Open create tag modal
+            });
+        }
+
+        // Account button
+        const accountButton = document.getElementById('account-button');
+        if (accountButton) {
+            accountButton.addEventListener('click', () => {
+                if (window.userService.isUserAuthenticated()) {
+                    modalManager.open('sync-settings-modal');
+                    if (window.accountUI) {
+                        window.accountUI.loadSyncSettings();
+                    }
+                } else {
+                    modalManager.open('login-modal');
+                }
+            });
+        }
     }
 
     /**

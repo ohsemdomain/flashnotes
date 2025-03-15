@@ -35,32 +35,6 @@
           </svg>
         </button>
 
-        <!-- Backup button -->
-        <button id="backup-manager-button" title="Backup & Restore">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-          </svg>
-        </button>
-
-        <!-- Appearance settings button -->
-        <button id="appearance-manager-button" title="Appearance Settings">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 5v2"></path>
-            <path d="M12 17v2"></path>
-            <path d="M5 12H3"></path>
-            <path d="M21 12h-2"></path>
-            <path d="M5.63 5.63L4.22 4.22"></path>
-            <path d="M19.78 4.22L18.37 5.63"></path>
-            <path d="M19.78 19.78l-1.41-1.41"></path>
-            <path d="M4.22 19.78l1.41-1.41"></path>
-          </svg>
-        </button>
-
         <!-- Open in browser button -->
         <button id="open-extension-button" title="Open in Browser">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -69,6 +43,18 @@
             <polyline points="15 3 21 3 21 9"></polyline>
             <line x1="10" y1="14" x2="21" y2="3"></line>
           </svg>
+        </button>
+
+        <!-- Account button - takes full remaining space -->
+        <button id="account-button" title="Account & Sync">
+          <div id="account-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span id="account-status">Sign In</span>
         </button>
       </div>
     </div>
@@ -208,27 +194,6 @@
     </div>
   </div>
 
-  <!-- Backup Manager Modal -->
-  <div id="backup-manager-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Backup & Restore</h3>
-        <button class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="backup-options">
-          <h4>Backup & Restore</h4>
-          <p>Export your notes or restore from a previous backup.</p>
-          <div class="button-group">
-            <button id="export-notes-btn">Export Notes</button>
-            <button id="import-notes-btn">Import Notes</button>
-          </div>
-          <p class="placeholder-text">This feature will be available soon.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Appearance Manager Modal -->
   <div id="appearance-manager-modal" class="modal">
     <div class="modal-content">
@@ -300,6 +265,79 @@
     </div>
   </div>
 
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Sign in with Google</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Sign in with your Google account to enable backup and sync features.</p>
+        <p>Your notes will be securely stored in your Google Drive account and be available across devices.</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <button id="login-button" class="google-signin-button">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18"
+              height="18">
+            Sign in with Google
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync Settings Modal -->
+  <div id="sync-settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Account & Sync Settings</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Profile Section -->
+        <div id="profile-section" style="display: none;">
+          <div class="profile-container">
+            <img id="profile-picture" src="" alt="Profile" class="profile-picture">
+            <div class="profile-info">
+              <h4 id="profile-name"></h4>
+              <p id="profile-email"></p>
+            </div>
+            <button id="sign-out-button" class="sign-out-button">Sign Out</button>
+          </div>
+        </div>
+
+        <!-- Sync Settings -->
+        <div class="sync-settings">
+          <h4>Google Drive Sync</h4>
+          <p>Automatically sync your notes across devices using Google Drive.</p>
+
+          <div class="toggle-container">
+            <label class="toggle">
+              <input type="checkbox" id="sync-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">Enable sync</span>
+          </div>
+
+          <p id="last-sync-time">Not synced yet</p>
+
+          <button id="sync-now-button" class="sync-button">Sync Now</button>
+        </div>
+
+        <!-- Backup & Restore Section -->
+        <div class="drive-backup-section" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+          <h4>Backup & Restore</h4>
+          <p>Manually backup and restore your notes to Google Drive.</p>
+          <div class="button-group">
+            <button id="backup-google-drive" class="sync-button">Backup to Google Drive</button>
+            <button id="restore-google-drive" class="sync-button" style="background-color: #6c757d;">Restore from Google
+              Drive</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript Files -->
 
   <!-- Database -->
@@ -312,11 +350,14 @@
   <!-- Services -->
   <script src="services/noteService.js"></script>
   <script src="services/tagService.js"></script>
+  <script src="services/userService.js"></script>
+  <script src="services/driveService.js"></script>
 
   <!-- UI Components -->
   <script src="ui/formatUI.js"></script>
   <script src="ui/tagUI.js"></script>
   <script src="ui/noteUI.js"></script>
+  <script src="ui/accountUI.js"></script>
   <script src="ui/modal.js"></script>
 
   <!-- Main Application -->
