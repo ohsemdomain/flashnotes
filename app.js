@@ -53,13 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show the app and hide the welcome screen
             showApp();
 
-            // Initialize the application UI with focus on speed
-            initializeAppUIFast();
-            
-            // Schedule background tasks for after UI is loaded
-            setTimeout(() => {
-                performBackgroundTasks();
-            }, 2000); // Delay background tasks by 2 seconds
+            // Process authentication and check for backup
+            await handleUserAuthenticated();
         } else {
             console.log('User signed out');
 
@@ -93,13 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.userService.authenticate(true)
                     .then(async (isAuthenticated) => {
                         if (isAuthenticated) {
-                            // After first authentication, check for backup once
-                            const hasBackup = await checkForBackup();
-                            
-                            // If no backup was found, initialize with default content
-                            if (!hasBackup) {
-                                await initializeFirstTimeContent();
-                            }
+                            // After authentication, check for backup first before loading UI
+                            showApp();
+                            await handleUserAuthenticated();
                         }
                     })
                     .catch(error => {
@@ -115,12 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isAuthenticated) {
                 // User is authenticated, show the app
                 showApp();
-                await initializeAppUIFast();
-                
-                // Schedule background tasks
-                setTimeout(() => {
-                    performBackgroundTasks();
-                }, 2000); // Delay background tasks by 2 seconds
+                // No need to call handleUserAuthenticated() here since the auth state listener will trigger
             } else {
                 // User is not authenticated, show welcome screen
                 hideApp();
@@ -132,6 +118,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initialize utility buttons
         initUtilityButtons();
+    }
+
+    /**
+     * Handle all actions needed after successful authentication
+     */
+    async function handleUserAuthenticated() {
+        try {
+            console.log('Handling user authentication and checking for backup...');
+
+            // Check for backup first before loading notes
+            const hasBackup = await checkForBackup();
+
+            if (hasBackup) {
+                // If backup was restored, just load notes without creating default content
+                console.log('Backup was restored, loading notes from local DB...');
+                await window.noteUI.loadNotes();
+
+                // Select the first note if available
+                const notes = await noteService.getAllNotes();
+                if (notes.length > 0) {
+                    await window.noteUI.selectNote(notes[0].id);
+                }
+            } else {
+                // No backup found, initialize app UI normally
+                console.log('No backup was restored, initializing app UI...');
+                await initializeAppUIFast();
+            }
+
+            // Schedule background tasks
+            setTimeout(() => {
+                performBackgroundTasks();
+            }, 2000);
+        } catch (error) {
+            console.error('Error handling authenticated user:', error);
+            // Fallback to normal initialization if there's an error
+            await initializeAppUIFast();
+        }
     }
 
     /**
@@ -175,10 +198,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Get notes to check if we need to create a default note
         const notes = await noteService.getAllNotes();
-        
+
         // If no notes exist, create a default one
         if (notes.length === 0) {
-            const newNote = await noteService.createNote();
+            console.log('No notes found, creating default welcome note...');
+            const newNote = await noteService.createNote("Welcome to Flash Notes", "Start taking notes with Flash Notes! Your notes are saved automatically and backed up to Google Drive.");
             await window.noteUI.loadNotes();
             await window.noteUI.selectNote(newNote.id);
         } else {
@@ -207,36 +231,62 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create a default note for first-time users
         const notes = await noteService.getAllNotes();
         if (notes.length === 0) {
+            console.log('Creating first-time welcome note...');
             await noteService.createNote("Welcome to Flash Notes", "Start taking notes with Flash Notes! Your notes are saved automatically and backed up to Google Drive.");
-            await window.noteUI.loadNotes();
         }
     }
 
     /**
      * Check if there's a backup on Drive and restore it if needed
-     * This is only called once after initial authentication
      * @returns {Promise<boolean>} True if backup was found and restored
      */
     async function checkForBackup() {
         try {
-            // Check if this is the first time after authentication
-            const data = await window.db.getData();
-            
-            // If we already have data locally, don't check for backup
-            if (data && data.notes && data.notes.length > 0) {
+            // Check if Drive service is initialized
+            if (!window.driveService) {
+                console.error('Drive service not initialized');
                 return false;
             }
-            
+
             console.log('Checking for existing backup on Drive...');
+
+            // Ensure Drive service is initialized
+            const initResult = await window.driveService.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return false;
+            }
+
+            // Check if we already have data locally
+            const data = await window.db.getData();
+            const hasLocalNotes = data && data.notes && data.notes.length > 0;
+
+            // If it's not the first run and we already have local notes, don't overwrite with backup
+            // unless explicitly requested by user (this prevents accidental data loss)
+            if (hasLocalNotes && data.lastBackupTime) {
+                console.log('Local notes already exist, skipping automatic backup restoration');
+                return false;
+            }
+
             const backupExists = await window.driveService.checkBackupExists();
 
             if (backupExists) {
                 console.log('Backup found on Drive, restoring...');
                 const success = await window.db.restoreFromDrive();
-                return success;
-            }
 
-            return false;
+                if (success) {
+                    console.log('Backup restored successfully');
+                    return true;
+                } else {
+                    console.error('Failed to restore backup');
+                    return false;
+                }
+            } else {
+                console.log('No backup found on Drive');
+                // Initialize with default content for first-time users
+                await initializeFirstTimeContent();
+                return false;
+            }
         } catch (error) {
             console.error('Error checking for backup:', error);
             return false;
@@ -331,6 +381,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (window.accountUI) {
                         window.accountUI.loadBackupSettings();
                     }
+                } else {
+                    // If not authenticated, try to authenticate
+                    window.userService.authenticate(true);
                 }
             });
         }

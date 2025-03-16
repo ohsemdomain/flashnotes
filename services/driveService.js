@@ -16,6 +16,7 @@ class DriveService {
         this.appFolderId = null;
         this.initialized = false;
         this.backupFileName = 'flash_notes_backup.json';
+        this.initializationPromise = null; // Track ongoing initialization
     }
 
     /**
@@ -23,27 +24,67 @@ class DriveService {
      * @returns {Promise<boolean>} Success status
      */
     async initialize() {
-        if (this.initialized) {
+        // If already initialized, return success
+        if (this.initialized && this.appFolderId) {
             return true;
         }
 
+        // If initialization is in progress, wait for it to complete
+        if (this.initializationPromise) {
+            return this.initializationPromise;
+        }
+
+        // Start initialization and store the promise
+        this.initializationPromise = this._doInitialize();
+
+        try {
+            // Wait for initialization to complete
+            const result = await this.initializationPromise;
+            // Clear the promise reference
+            this.initializationPromise = null;
+            return result;
+        } catch (error) {
+            // Clear promise reference on error
+            this.initializationPromise = null;
+            throw error;
+        }
+    }
+
+    /**
+     * Perform the actual initialization work
+     * @private
+     * @returns {Promise<boolean>} Success status
+     */
+    async _doInitialize() {
         try {
             // Check if user is authenticated
             if (!this.userService.isUserAuthenticated()) {
+                console.log('User not authenticated, cannot initialize Drive service');
+                return false;
+            }
+
+            // Make sure we have a valid token
+            const token = this.userService.getAuthToken();
+            if (!token) {
+                console.log('No valid auth token available');
                 return false;
             }
 
             // Find or create app folder
             const folderId = await this.findOrCreateAppFolder();
             if (!folderId) {
+                console.error('Failed to find or create app folder');
                 return false;
             }
 
             this.appFolderId = folderId;
             this.initialized = true;
+            console.log('Drive service initialized successfully');
             return true;
         } catch (error) {
             console.error('Error initializing Drive service:', error);
+            this.initialized = false;
+            this.appFolderId = null;
             return false;
         }
     }
@@ -117,6 +158,8 @@ class DriveService {
                 throw new Error('Not authenticated');
             }
 
+            console.log('Creating Flash Notes folder in Google Drive...');
+
             const response = await fetch(
                 'https://www.googleapis.com/drive/v3/files',
                 {
@@ -137,6 +180,7 @@ class DriveService {
             }
 
             const data = await response.json();
+            console.log('Flash Notes folder created successfully');
             return data.id;
         } catch (error) {
             console.error('Error creating app folder:', error);
@@ -153,7 +197,11 @@ class DriveService {
      */
     async saveFile(fileName, content, existingFileId = null) {
         try {
-            await this.initialize();
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return null;
+            }
 
             const token = this.userService.getAuthToken();
             if (!token) {
@@ -220,7 +268,11 @@ class DriveService {
      */
     async readFile(fileId) {
         try {
-            await this.initialize();
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return null;
+            }
 
             const token = this.userService.getAuthToken();
             if (!token) {
@@ -254,7 +306,11 @@ class DriveService {
      */
     async findFile(fileName) {
         try {
-            await this.initialize();
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return null;
+            }
 
             const token = this.userService.getAuthToken();
             if (!token) {
@@ -294,9 +350,22 @@ class DriveService {
      */
     async checkBackupExists() {
         try {
-            await this.initialize();
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return false;
+            }
+
+            console.log('Checking if backup file exists in Drive...');
             const file = await this.findFile(this.backupFileName);
-            return !!file;
+
+            if (file) {
+                console.log('Backup file found in Drive:', file.id);
+                return true;
+            } else {
+                console.log('No backup file found in Drive');
+                return false;
+            }
         } catch (error) {
             console.error('Error checking if backup exists:', error);
             return false;
@@ -309,7 +378,13 @@ class DriveService {
      */
     async readBackupData() {
         try {
-            await this.initialize();
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return null;
+            }
+
+            console.log('Reading backup data from Drive...');
 
             // Find the backup file
             const file = await this.findFile(this.backupFileName);
@@ -318,9 +393,18 @@ class DriveService {
                 return null;
             }
 
+            console.log('Reading backup file content...');
+
             // Read the backup data
             const backupData = await this.readFile(file.id);
-            return backupData;
+
+            if (backupData) {
+                console.log('Backup data read successfully');
+                return backupData;
+            } else {
+                console.error('Failed to read backup data');
+                return null;
+            }
         } catch (error) {
             console.error('Error reading backup data:', error);
             return null;
@@ -336,11 +420,13 @@ class DriveService {
      */
     async backupData(notes, tags, tagColors) {
         try {
-            await this.initialize();
-
-            if (!this.appFolderId) {
-                throw new Error('App folder not initialized');
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return false;
             }
+
+            console.log('Starting backup to Google Drive...');
 
             // Create backup data object
             const backupData = {
@@ -361,7 +447,13 @@ class DriveService {
                 existingFile ? existingFile.id : null
             );
 
-            return !!fileId;
+            if (fileId) {
+                console.log('Backup to Google Drive successful');
+                return true;
+            } else {
+                console.error('Backup to Google Drive failed');
+                return false;
+            }
         } catch (error) {
             console.error('Error creating backup:', error);
             return false;
@@ -374,7 +466,11 @@ class DriveService {
      */
     async listBackups() {
         try {
-            await this.initialize();
+            const initResult = await this.initialize();
+            if (!initResult) {
+                console.error('Failed to initialize Drive service');
+                return null;
+            }
 
             const token = this.userService.getAuthToken();
             if (!token) {
@@ -401,6 +497,16 @@ class DriveService {
             console.error('Error listing backups:', error);
             return null;
         }
+    }
+
+    /**
+     * Reset the initialization state (for testing or recovery)
+     */
+    resetInitialization() {
+        this.initialized = false;
+        this.appFolderId = null;
+        this.initializationPromise = null;
+        console.log('Drive service initialization reset');
     }
 }
 
