@@ -29,7 +29,7 @@ const TagHelper = {
    */
   getTextColorForBackground: function (backgroundColor) {
     const brightness = this.getBrightness(backgroundColor);
-    return brightness > 160 ? '#333' : '#fff';
+    return brightness > 200 ? '#333' : '#fff';
   },
 
   /**

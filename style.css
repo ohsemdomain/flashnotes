@@ -1052,9 +1052,6 @@ body.full-window-mode .note-content-area {
   text-align: center;
   max-width: 400px;
   padding: 30px;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-logo {
