@@ -20,6 +20,8 @@ class TagManagerUI {
 
         this.initElements();
         this.initEventListeners();
+
+        console.log("TagManagerUI initialized with tagEditorUI:", !!this.tagEditorUI);
     }
 
     /**
@@ -28,6 +30,10 @@ class TagManagerUI {
     initElements() {
         this.tagsManagerList = document.getElementById('tags-manager-list');
         this.addTagManagerBtn = document.getElementById('add-tag-manager-btn');
+
+        // Debug check
+        if (!this.tagsManagerList) console.error("Tags manager list not found");
+        if (!this.addTagManagerBtn) console.error("Add Tag button not found in the DOM");
     }
 
     /**
@@ -38,13 +44,31 @@ class TagManagerUI {
         if (this.addTagManagerBtn) {
             this.addTagManagerBtn.addEventListener('click', () => {
                 console.log("Add Tag button clicked in TagManagerUI");
-                // Close the current modal first
-                modalManager.closeActiveModal();
 
-                // Then show the create tag modal using a slight delay
-                setTimeout(() => {
-                    this.tagEditorUI.showCreateTagModal();
-                }, 100);
+                // Check if tagEditorUI is available
+                if (!this.tagEditorUI) {
+                    console.error("tagEditorUI is not defined");
+                    return;
+                }
+
+                // Instead of closing the current modal first, store its ID
+                const currentModalId = 'tags-manager-modal';
+
+                // Set last opened modal directly in the modal manager
+                modalManager.lastOpenedModal = currentModalId;
+
+                // Hide the current modal without fully closing it
+                const modalElement = document.getElementById(currentModalId);
+                if (modalElement) {
+                    modalElement.classList.remove('active');
+
+                    // Also hide the backdrop if we're hiding the modal
+                    const backdrop = document.getElementById('modal-backdrop');
+                    if (backdrop) backdrop.classList.remove('active');
+                }
+
+                // Directly open the create tag modal
+                this.tagEditorUI.showCreateTagModal();
             });
         } else {
             console.error("Add Tag button not found in the DOM");
@@ -55,6 +79,12 @@ class TagManagerUI {
      * Load all tags into the manager
      */
     async loadTags() {
+        if (!this.tagsManagerList) {
+            console.error("Tags manager list not found when trying to load tags");
+            return;
+        }
+
+        console.log("Loading tags into manager");
         const tags = await this.tagService.getAllTagsWithColors();
         this.tagsManagerList.innerHTML = '';
 
@@ -80,11 +110,17 @@ class TagManagerUI {
 
             tagElement.querySelector('.tag-edit-button').addEventListener('click', (e) => {
                 const tagName = e.target.dataset.tag;
-                this.tagEditorUI.showEditTagModal(tagName);
+                if (this.tagEditorUI) {
+                    this.tagEditorUI.showEditTagModal(tagName);
+                } else {
+                    console.error("tagEditorUI is not defined when trying to edit tag");
+                }
             });
 
             this.tagsManagerList.appendChild(tagElement);
         }
+
+        console.log("Tags loaded:", tags.length);
     }
 }
 

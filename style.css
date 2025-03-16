@@ -45,7 +45,7 @@ button {
 }
 
 button:hover {
-  color: #007bff;
+  opacity: 0.5;
 }
 
 .icon {
@@ -1098,7 +1098,6 @@ body.full-window-mode .note-content-area {
 
 #welcome-signin-button:hover {
   background-color: #0069d9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 #welcome-signin-button img {
@@ -1249,7 +1248,6 @@ body.full-window-mode .note-content-area {
 
 .backup-button:hover {
   background-color: #0069d9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .backup-button:disabled {

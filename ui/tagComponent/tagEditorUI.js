@@ -22,6 +22,8 @@ class TagEditorUI {
         this.initElements();
         this.initEventListeners();
         this.setupColorSelectionObserver();
+
+        console.log("TagEditorUI initialized");
     }
 
     /**
@@ -39,6 +41,11 @@ class TagEditorUI {
         this.updateTagButton = document.getElementById('update-tag-button');
         this.deleteTagButton = document.getElementById('delete-tag-button');
         this.editColorOptions = document.querySelectorAll('#edit-tag-colors .color-option');
+
+        // Debug checks
+        if (!this.newTagName) console.error("New tag name input not found");
+        if (!this.createTagButton) console.error("Create Tag button not found in the DOM");
+        if (this.colorOptions.length === 0) console.error("Color options not found");
     }
 
     /**
@@ -46,19 +53,29 @@ class TagEditorUI {
      */
     initEventListeners() {
         // Create tag button
-        this.createTagButton.addEventListener('click', () => this.createTag());
+        if (this.createTagButton) {
+            this.createTagButton.addEventListener('click', () => {
+                console.log("Create Tag button clicked");
+                this.createTag();
+            });
+        }
 
         // Update tag button
-        this.updateTagButton.addEventListener('click', () => this.updateTag());
+        if (this.updateTagButton) {
+            this.updateTagButton.addEventListener('click', () => this.updateTag());
+        }
 
         // Delete tag button
-        this.deleteTagButton.addEventListener('click', () => this.deleteTag());
+        if (this.deleteTagButton) {
+            this.deleteTagButton.addEventListener('click', () => this.deleteTag());
+        }
 
         // Color selection in create tag modal
         this.colorOptions.forEach(option => {
             option.addEventListener('click', () => {
                 TagHelper.selectColorOption(this.colorOptions, option.dataset.color);
                 this.selectedTagColor = option.dataset.color;
+                console.log("Selected color:", this.selectedTagColor);
             });
         });
 
@@ -71,17 +88,22 @@ class TagEditorUI {
         });
 
         // Modal tag name enter key
-        this.newTagName.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                this.createTag();
-            }
-        });
+        if (this.newTagName) {
+            this.newTagName.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    console.log("Enter key pressed in new tag name field");
+                    this.createTag();
+                }
+            });
+        }
 
-        this.editTagName.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                this.updateTag();
-            }
-        });
+        if (this.editTagName) {
+            this.editTagName.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.updateTag();
+                }
+            });
+        }
     }
 
     /**
@@ -117,6 +139,8 @@ class TagEditorUI {
                 attributes: true,
                 attributeFilter: ['class']
             });
+        } else {
+            console.error("Edit tag modal element not found");
         }
 
         // Store observer reference for cleanup
@@ -136,15 +160,34 @@ class TagEditorUI {
      * Show the create tag modal
      */
     showCreateTagModal() {
-        // Store the current active modal before opening a new one
-        modalManager.lastOpenedModal = 'tags-manager-modal';
+        console.log("Showing create tag modal");
 
         modalManager.open('create-tag-modal', {
             onOpen: () => {
-                this.newTagName.value = '';
-                this.newTagName.focus();
-                this.selectedTagColor = '#e4e4e4';
-                TagHelper.selectColorOption(this.colorOptions, this.selectedTagColor);
+                console.log("Create tag modal opened");
+
+                // Always reset the form completely when opening
+                if (this.newTagName) {
+                    this.newTagName.value = '';
+                    this.newTagName.focus();
+                }
+
+                // Reset color selection to default by completely clearing previous selection
+                this.selectedTagColor = '#e4e4e4'; // Default color
+
+                // Deselect all color options first
+                if (this.colorOptions) {
+                    this.colorOptions.forEach(option => {
+                        option.classList.remove('selected');
+                    });
+
+                    // Find and select the default color option
+                    this.colorOptions.forEach(option => {
+                        if (option.dataset.color === this.selectedTagColor) {
+                            option.classList.add('selected');
+                        }
+                    });
+                }
             }
         });
     }
@@ -155,17 +198,22 @@ class TagEditorUI {
      */
     async showEditTagModal(tagName) {
         const tagColor = await this.tagService.getTagColor(tagName);
-        console.log("Tag color from service:", tagColor);
+        console.log("Showing edit tag modal for:", tagName, "Color:", tagColor);
 
         // Set data attribute for the observer to use
-        document.getElementById('edit-tag-modal').setAttribute('data-current-color', tagColor);
+        const editModal = document.getElementById('edit-tag-modal');
+        if (editModal) {
+            editModal.setAttribute('data-current-color', tagColor);
+        }
 
         // Store the current active modal before opening a new one
-        modalManager.lastOpenedModal = 'tags-manager-modal';
+        if (modalManager.activeModal === 'tags-manager-modal') {
+            modalManager.lastOpenedModal = 'tags-manager-modal';
+        }
 
         // Set the values for tag name
-        this.editTagName.value = tagName;
-        this.editTagOriginalName.value = tagName;
+        if (this.editTagName) this.editTagName.value = tagName;
+        if (this.editTagOriginalName) this.editTagOriginalName.value = tagName;
         this.editingTagColor = tagColor;
 
         // Open the modal (the observer will handle color selection)
@@ -176,22 +224,45 @@ class TagEditorUI {
      * Create a new tag
      */
     async createTag() {
-        const tagName = this.newTagName.value.trim();
-        if (!tagName) return;
-
-        // Add to global tags
-        await this.tagService.addTag(tagName, this.selectedTagColor);
-
-        // Close the create tag modal
-        modalManager.closeActiveModal();
-
-        // Re-open the tags manager modal if it was active
-        if (modalManager.lastOpenedModal) {
-            modalManager.open(modalManager.lastOpenedModal);
+        if (!this.newTagName) {
+            console.error("New tag name input not found");
+            return;
         }
 
-        // Notify parent component
-        this.onTagsChanged();
+        const tagName = this.newTagName.value.trim();
+        if (!tagName) {
+            console.log("Tag name is empty, not creating");
+            return;
+        }
+
+        console.log("Creating tag:", tagName, "Color:", this.selectedTagColor);
+
+        try {
+            // Add to global tags
+            await this.tagService.addTag(tagName, this.selectedTagColor);
+            console.log("Tag created successfully");
+
+            // Close create tag modal
+            modalManager.closeActiveModal();
+
+            // Ensure we're opening tags-manager-modal specifically after creating a tag
+            setTimeout(() => {
+                // Open tags manager modal and refresh the list
+                modalManager.open('tags-manager-modal');
+
+                // Make sure tags list is refreshed
+                if (window.tagManagerUI) {
+                    window.tagManagerUI.loadTags();
+                }
+
+                // Notify parent component
+                if (this.onTagsChanged) {
+                    this.onTagsChanged();
+                }
+            }, 50);
+        } catch (error) {
+            console.error("Error creating tag:", error);
+        }
     }
 
     /**
@@ -211,7 +282,9 @@ class TagEditorUI {
 
         // Re-open the tags manager modal if it was active
         if (modalManager.lastOpenedModal) {
-            modalManager.open(modalManager.lastOpenedModal);
+            setTimeout(() => {
+                modalManager.open(modalManager.lastOpenedModal);
+            }, 100);
         }
 
         // Notify parent component
@@ -233,7 +306,9 @@ class TagEditorUI {
 
             // Re-open the tags manager modal if it was active
             if (modalManager.lastOpenedModal) {
-                modalManager.open(modalManager.lastOpenedModal);
+                setTimeout(() => {
+                    modalManager.open(modalManager.lastOpenedModal);
+                }, 100);
             }
 
             // Notify parent component

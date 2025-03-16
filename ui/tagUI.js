@@ -16,6 +16,8 @@ class TagUI {
         this.tagService = tagService;
         this.currentNote = null;
 
+        console.log("TagUI initializing with tagService:", !!tagService);
+
         // Wait for DOM to be ready before initializing components
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.initComponents());
@@ -28,35 +30,51 @@ class TagUI {
      * Initialize all tag UI components
      */
     initComponents() {
-        // Create tag editor UI
-        this.tagEditorUI = new TagEditorUI(this.tagService, () => {
-            // Tags changed callback
-            this.handleTagsChanged();
-        });
+        console.log("Initializing tag UI components");
 
-        // Create tag manager UI
-        this.tagManagerUI = new TagManagerUI(this.tagService, this.tagEditorUI, () => {
-            // Tags changed callback
-            this.handleTagsChanged();
-        });
+        try {
+            // Create tag editor UI first
+            this.tagEditorUI = new TagEditorUI(this.tagService, () => {
+                // Tags changed callback
+                this.handleTagsChanged();
+            });
 
-        // Create tag display UI
-        this.tagDisplayUI = new TagDisplayUI(this.tagService, (updatedNote) => {
-            // Tag removed callback
-            this.handleTagRemoved(updatedNote);
-        });
+            console.log("TagEditorUI created");
 
-        // Create tag dropdown UI
-        this.tagDropdownUI = new TagDropdownUI(this.tagService, (updatedNote) => {
-            // Tag toggled callback
-            this.handleTagToggled(updatedNote);
-        });
+            // Create tag manager UI (passing the tagEditorUI reference)
+            this.tagManagerUI = new TagManagerUI(this.tagService, this.tagEditorUI, () => {
+                // Tags changed callback
+                this.handleTagsChanged();
+            });
 
-        // Make components globally accessible
-        window.tagDropdownUI = this.tagDropdownUI;
-        window.tagDisplayUI = this.tagDisplayUI;
-        window.tagEditorUI = this.tagEditorUI;
-        window.tagManagerUI = this.tagManagerUI;
+            console.log("TagManagerUI created");
+
+            // Create tag display UI
+            this.tagDisplayUI = new TagDisplayUI(this.tagService, (updatedNote) => {
+                // Tag removed callback
+                this.handleTagRemoved(updatedNote);
+            });
+
+            console.log("TagDisplayUI created");
+
+            // Create tag dropdown UI
+            this.tagDropdownUI = new TagDropdownUI(this.tagService, (updatedNote) => {
+                // Tag toggled callback
+                this.handleTagToggled(updatedNote);
+            });
+
+            console.log("TagDropdownUI created");
+
+            // Make components globally accessible
+            window.tagDropdownUI = this.tagDropdownUI;
+            window.tagDisplayUI = this.tagDisplayUI;
+            window.tagEditorUI = this.tagEditorUI;
+            window.tagManagerUI = this.tagManagerUI;
+
+            console.log("Tag UI components initialized and made globally accessible");
+        } catch (error) {
+            console.error("Error initializing tag UI components:", error);
+        }
     }
 
     /**
@@ -65,8 +83,14 @@ class TagUI {
      */
     setCurrentNote(note) {
         this.currentNote = note;
-        this.tagDropdownUI.setCurrentNote(note);
-        this.tagDisplayUI.setCurrentNote(note);
+
+        if (this.tagDropdownUI) {
+            this.tagDropdownUI.setCurrentNote(note);
+        }
+
+        if (this.tagDisplayUI) {
+            this.tagDisplayUI.setCurrentNote(note);
+        }
     }
 
     /**
@@ -75,7 +99,11 @@ class TagUI {
      */
     handleTagToggled(updatedNote) {
         this.currentNote = updatedNote;
-        this.tagDisplayUI.setCurrentNote(updatedNote);
+
+        if (this.tagDisplayUI) {
+            this.tagDisplayUI.setCurrentNote(updatedNote);
+        }
+
         this.notifyTagsChanged();
     }
 
@@ -85,7 +113,11 @@ class TagUI {
      */
     handleTagRemoved(updatedNote) {
         this.currentNote = updatedNote;
-        this.tagDropdownUI.setCurrentNote(updatedNote);
+
+        if (this.tagDropdownUI) {
+            this.tagDropdownUI.setCurrentNote(updatedNote);
+        }
+
         this.notifyTagsChanged();
     }
 
@@ -93,14 +125,22 @@ class TagUI {
      * Handle when tags are changed (created, updated, deleted)
      */
     handleTagsChanged() {
-        // Refresh all tag-related UI components
-        this.tagManagerUI.loadTags();
+        console.log("Tags changed, refreshing UI components");
 
-        if (this.tagDropdownUI.tagDropdown.classList.contains('active')) {
+        // Refresh all tag-related UI components
+        if (this.tagManagerUI) {
+            this.tagManagerUI.loadTags();
+        }
+
+        if (this.tagDropdownUI && this.tagDropdownUI.tagDropdown &&
+            this.tagDropdownUI.tagDropdown.classList.contains('active')) {
             this.tagDropdownUI.loadTags();
         }
 
-        this.tagDisplayUI.renderTags();
+        if (this.tagDisplayUI) {
+            this.tagDisplayUI.renderTags();
+        }
+
         this.notifyTagsChanged();
     }
 
@@ -118,15 +158,21 @@ class TagUI {
      */
     showTagManager() {
         modalManager.open('tags-manager-modal');
-        this.tagManagerUI.loadTags();
+
+        if (this.tagManagerUI) {
+            this.tagManagerUI.loadTags();
+        }
     }
 
     /**
- * Show the create tag modal
- */
+     * Show the create tag modal
+     */
     showCreateTagModal() {
         if (this.tagEditorUI) {
+            console.log("Delegating to tagEditorUI.showCreateTagModal()");
             this.tagEditorUI.showCreateTagModal();
+        } else {
+            console.error("tagEditorUI is not defined");
         }
     }
 
@@ -134,7 +180,11 @@ class TagUI {
      * Load tags manager (for backward compatibility)
      */
     loadTagsManager() {
-        this.tagManagerUI.loadTags();
+        if (this.tagManagerUI) {
+            this.tagManagerUI.loadTags();
+        } else {
+            console.error("tagManagerUI is not defined");
+        }
     }
 }
 
