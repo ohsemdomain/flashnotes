@@ -535,12 +535,13 @@ button#new-note:hover {
 }
 
 .tag {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 4px 4px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 7px 4px 6px 12px;
   border-radius: 20px;
   display: flex;
   align-items: center;
+  line-height: 0.7;
 }
 
 .tag span {
@@ -552,6 +553,7 @@ button#new-note:hover {
   font-size: 12px;
   opacity: 0.5;
   transition: all 0.2s;
+  padding-bottom: 1px;
 }
 
 .remove-tag:hover {
@@ -711,7 +713,24 @@ button#new-note:hover {
 }
 
 .color-option.selected {
-  border-color: #333;
+  position: relative;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #00000026;
+  transition: all 0.2s ease;
+}
+
+.color-option.selected::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 1px white);
+  opacity: 0.3;
 }
 
 /* ==========================================================================

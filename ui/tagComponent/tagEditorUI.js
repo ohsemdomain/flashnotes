@@ -21,6 +21,7 @@ class TagEditorUI {
 
         this.initElements();
         this.initEventListeners();
+        this.setupColorSelectionObserver();
     }
 
     /**
@@ -84,6 +85,54 @@ class TagEditorUI {
     }
 
     /**
+     * Set up MutationObserver for color selection in the edit modal
+     */
+    setupColorSelectionObserver() {
+        // Create an observer to handle tag color selection when modal opens
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.target.id === 'edit-tag-modal' &&
+                    mutation.target.classList.contains('active')) {
+
+                    const tagColor = mutation.target.getAttribute('data-current-color');
+                    if (tagColor) {
+                        setTimeout(() => {
+                            const colorOptions = document.querySelectorAll('#edit-tag-colors .color-option');
+                            colorOptions.forEach(option => {
+                                option.classList.remove('selected');
+                                if (option.dataset.color === tagColor) {
+                                    option.classList.add('selected');
+                                }
+                            });
+                        }, 50);
+                    }
+                }
+            });
+        });
+
+        // Start observing the modal
+        const modalElement = document.getElementById('edit-tag-modal');
+        if (modalElement) {
+            observer.observe(modalElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
+        // Store observer reference for cleanup
+        this.colorObserver = observer;
+    }
+
+    /**
+     * Clean up observers when component is destroyed
+     */
+    cleanup() {
+        if (this.colorObserver) {
+            this.colorObserver.disconnect();
+        }
+    }
+
+    /**
      * Show the create tag modal
      */
     showCreateTagModal() {
@@ -106,26 +155,21 @@ class TagEditorUI {
      */
     async showEditTagModal(tagName) {
         const tagColor = await this.tagService.getTagColor(tagName);
+        console.log("Tag color from service:", tagColor);
+
+        // Set data attribute for the observer to use
+        document.getElementById('edit-tag-modal').setAttribute('data-current-color', tagColor);
 
         // Store the current active modal before opening a new one
         modalManager.lastOpenedModal = 'tags-manager-modal';
 
-        // Set the values before opening the modal
+        // Set the values for tag name
         this.editTagName.value = tagName;
         this.editTagOriginalName.value = tagName;
         this.editingTagColor = tagColor;
 
-        // Open the modal
-        modalManager.open('edit-tag-modal', {
-            onOpen: () => {
-                // Set these values again inside the onOpen callback
-                setTimeout(() => {
-                    this.editTagName.value = tagName;
-                    this.editTagOriginalName.value = tagName;
-                    TagHelper.selectColorOption(this.editColorOptions, tagColor);
-                }, 50); // Small delay to ensure the modal is visible
-            }
-        });
+        // Open the modal (the observer will handle color selection)
+        modalManager.open('edit-tag-modal');
     }
 
     /**

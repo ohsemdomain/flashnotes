@@ -122,6 +122,15 @@ class TagUI {
     }
 
     /**
+ * Show the create tag modal
+ */
+    showCreateTagModal() {
+        if (this.tagEditorUI) {
+            this.tagEditorUI.showCreateTagModal();
+        }
+    }
+
+    /**
      * Load tags manager (for backward compatibility)
      */
     loadTagsManager() {

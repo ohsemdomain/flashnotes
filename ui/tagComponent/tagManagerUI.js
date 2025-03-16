@@ -35,9 +35,20 @@ class TagManagerUI {
      */
     initEventListeners() {
         // Add tag button
-        this.addTagManagerBtn.addEventListener('click', () => {
-            this.tagEditorUI.showCreateTagModal();
-        });
+        if (this.addTagManagerBtn) {
+            this.addTagManagerBtn.addEventListener('click', () => {
+                console.log("Add Tag button clicked in TagManagerUI");
+                // Close the current modal first
+                modalManager.closeActiveModal();
+
+                // Then show the create tag modal using a slight delay
+                setTimeout(() => {
+                    this.tagEditorUI.showCreateTagModal();
+                }, 100);
+            });
+        } else {
+            console.error("Add Tag button not found in the DOM");
+        }
     }
 
     /**
