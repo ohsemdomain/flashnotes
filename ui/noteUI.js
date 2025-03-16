@@ -24,7 +24,6 @@ class NoteUI {
     this.currentNote = null;
     this.saveTimeout = null;
     this.onNoteChanged = onNoteChanged || function () { };
-    this.cachedTagColors = {}; // Add cache for tag colors to reduce lookups
 
     this.initElements();
     this.initEventListeners();
@@ -86,51 +85,25 @@ class NoteUI {
   }
 
   /**
-   * Pre-cache all tag colors for faster rendering
-   * This avoids multiple async calls when rendering notes
-   */
-  async cacheAllTagColors() {
-    try {
-      const allTags = await window.db.getAllTagsWithColors();
-      allTags.forEach(tag => {
-        this.cachedTagColors[tag.name] = tag.color;
-      });
-    } catch (error) {
-      console.error('Error caching tag colors:', error);
-    }
-  }
-
-  /**
-   * Get tag color from cache or database
+   * Get tag color from the tag service
    * @param {string} tagName - The tag name
    * @returns {Promise<string>} - The color hex code
    */
   async getTagColor(tagName) {
-    // Check if color is in cache
-    if (this.cachedTagColors[tagName]) {
-      return this.cachedTagColors[tagName];
-    }
-    
-    // If not in cache, get from database and cache it
-    const color = await window.db.getTagColor(tagName);
-    this.cachedTagColors[tagName] = color;
-    return color;
+    return window.tagService.getTagColor(tagName);
   }
 
   /**
    * Load notes into the sidebar list
    */
   async loadNotes() {
-    // First ensure tag colors are cached for performance
-    await this.cacheAllTagColors();
-    
     const query = this.searchInput.value.trim();
     const notes = await this.noteService.searchNotes(query);
 
     this.notesList.innerHTML = '';
 
     for (const note of notes) {
-      // Get tag colors for this note using the cache
+      // Get tag colors for this note using the tag service
       const tagColors = [];
       for (const tagName of note.tags) {
         const tagColor = await this.getTagColor(tagName);

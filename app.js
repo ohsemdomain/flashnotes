@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const noteService = new NoteService(window.db);
     const tagService = new TagService(window.db);
 
+    // Make tagService globally available for UI components
+    window.tagService = tagService;
+
     // Callback for note changes
     const onNoteChanged = async () => {
         // This function will be called when a note is changed

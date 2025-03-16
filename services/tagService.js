@@ -6,6 +6,7 @@
  * - Tag management (create, update, delete)
  * - Tag associations with notes
  * - Tag color management
+ * - Tag color caching
  * 
  * This service acts as an intermediary between UI components and the database layer,
  * providing a clean API for tag operations.
@@ -13,6 +14,22 @@
 class TagService {
     constructor(db) {
         this.db = db;
+        this.colorCache = {}; // Cache for tag colors
+        this.initCache();
+    }
+
+    /**
+     * Initialize the color cache
+     */
+    async initCache() {
+        try {
+            const tags = await this.getAllTagsWithColors();
+            tags.forEach(tag => {
+                this.colorCache[tag.name] = tag.color;
+            });
+        } catch (error) {
+            console.error('Error initializing tag color cache:', error);
+        }
     }
 
     /**
@@ -37,7 +54,15 @@ class TagService {
      * @returns {Promise<string>} Hex color code
      */
     async getTagColor(tagName) {
-        return this.db.getTagColor(tagName);
+        // Check if color is in cache
+        if (this.colorCache[tagName]) {
+            return this.colorCache[tagName];
+        }
+
+        // If not in cache, get from database and cache it
+        const color = await this.db.getTagColor(tagName);
+        this.colorCache[tagName] = color;
+        return color;
     }
 
     /**
@@ -47,7 +72,10 @@ class TagService {
      * @returns {Promise<string>} The added tag name
      */
     async addTag(tagName, color = '#e4e4e4') {
-        return this.db.addTag(tagName, color);
+        const result = await this.db.addTag(tagName, color);
+        // Update cache
+        this.colorCache[tagName] = color;
+        return result;
     }
 
     /**
@@ -57,7 +85,12 @@ class TagService {
      * @returns {Promise<boolean>} Success status
      */
     async updateTagColor(tagName, color) {
-        return this.db.updateTagColor(tagName, color);
+        const result = await this.db.updateTagColor(tagName, color);
+        // Update cache if successful
+        if (result) {
+            this.colorCache[tagName] = color;
+        }
+        return result;
     }
 
     /**
@@ -66,7 +99,12 @@ class TagService {
      * @returns {Promise<boolean>} Success status
      */
     async removeTag(tagName) {
-        return this.db.removeTag(tagName);
+        const result = await this.db.removeTag(tagName);
+        // Remove from cache if successful
+        if (result) {
+            delete this.colorCache[tagName];
+        }
+        return result;
     }
 
     /**
@@ -128,33 +166,23 @@ class TagService {
             }
         }
 
-        // Remove the old tag
+        // Remove the old tag (which will also update the cache)
         return this.db.removeTag(originalName);
     }
 
     /**
-     * Calculate the brightness of a color
-     * @param {string} hexColor - Hex color code
-     * @returns {number} Brightness value (0-255)
+     * Clear the color cache
      */
-    getBrightness(hexColor) {
-        // Convert hex to RGB
-        const r = parseInt(hexColor.substr(1, 2), 16);
-        const g = parseInt(hexColor.substr(3, 2), 16);
-        const b = parseInt(hexColor.substr(5, 2), 16);
-
-        // Calculate brightness (perceived luminance)
-        return (r * 299 + g * 587 + b * 114) / 1000;
+    clearCache() {
+        this.colorCache = {};
     }
 
     /**
-     * Get appropriate text color based on background color
-     * @param {string} backgroundColor - Hex color code
-     * @returns {string} Text color (#333 or #fff)
+     * Refresh the color cache with latest data from database
      */
-    getTextColorForBackground(backgroundColor) {
-        const brightness = this.getBrightness(backgroundColor);
-        return brightness > 160 ? '#333' : '#fff';
+    async refreshCache() {
+        this.clearCache();
+        await this.initCache();
     }
 }
 
