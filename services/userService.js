@@ -17,6 +17,7 @@ class UserService {
         this.authToken = null;
         this.isAuthenticated = false;
         this.authListeners = [];
+        this.authPromise = null; // Track ongoing auth promise
 
         // Try to load saved auth state on initialization
         this.loadAuthState();
@@ -70,13 +71,49 @@ class UserService {
     /**
      * Perform Google authentication
      * @param {boolean} interactive - Whether to show interactive login UI
-     * @returns {Promise<string|null>} Auth token or null if failed
+     * @returns {Promise<boolean>} Authentication success status
      */
     async authenticate(interactive = true) {
+        // If authentication is already in progress, return the existing promise
+        if (this.authPromise) {
+            console.log('Auth already in progress, returning existing promise');
+            return this.authPromise;
+        }
+
+        // Create a new authentication promise
+        this.authPromise = this._performAuthentication(interactive);
+
         try {
+            // Wait for authentication to complete and return the result
+            return await this.authPromise;
+        } finally {
+            // Clear the promise reference when done (whether successful or not)
+            setTimeout(() => {
+                this.authPromise = null;
+            }, 500); // Small delay to prevent rapid sequential calls
+        }
+    }
+
+    /**
+     * Internal method to perform the actual authentication
+     * @private
+     * @param {boolean} interactive - Whether to show interactive login UI
+     * @returns {Promise<boolean>} Authentication success status
+     */
+    async _performAuthentication(interactive) {
+        try {
+            // If already authenticated and we have a token, validate it or use it
+            if (this.isAuthenticated && this.authToken) {
+                // Optionally verify token validity here if needed
+                console.log('Already authenticated with token');
+                return true;
+            }
+
+            console.log(`Requesting auth token (interactive: ${interactive})`);
+
             // Get auth token from Chrome identity API
             const token = await new Promise((resolve, reject) => {
-                chrome.identity.getAuthToken({ interactive: interactive }, (token) => {
+                chrome.identity.getAuthToken({ interactive }, (token) => {
                     if (chrome.runtime.lastError) {
                         reject(chrome.runtime.lastError);
                         return;
@@ -86,6 +123,7 @@ class UserService {
             });
 
             if (token) {
+                console.log('Received valid auth token');
                 this.authToken = token;
                 this.isAuthenticated = true;
 
@@ -98,20 +136,21 @@ class UserService {
                 // Notify listeners
                 this.notifyAuthListeners();
 
-                return token;
+                return true;
             }
 
-            return null;
+            console.log('No auth token received');
+            return false;
         } catch (error) {
             console.error('Authentication error:', error);
-            return null;
+            return false;
         }
     }
 
     /**
      * Refresh the auth token
      * @param {boolean} interactive - Whether to show interactive login UI if token is expired
-     * @returns {Promise<string|null>} The fresh auth token or null if failed
+     * @returns {Promise<boolean>} Success status
      */
     async refreshAuthToken(interactive = false) {
         try {
@@ -120,13 +159,14 @@ class UserService {
                 await new Promise((resolve) => {
                     chrome.identity.removeCachedAuthToken({ token: this.authToken }, resolve);
                 });
+                this.authToken = null;
             }
 
             // Get a new token
-            return this.authenticate(interactive);
+            return await this.authenticate(interactive);
         } catch (error) {
             console.error('Error refreshing token:', error);
-            return null;
+            return false;
         }
     }
 
