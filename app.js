@@ -49,18 +49,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Set up event listeners
     setupEventListeners();
 
-    // Initialize the app - try silent authentication first
-    const isAuthenticated = await window.userService.authenticate(false);
+    // Make a fast initial UI decision based on local auth data
+    // This avoids the flashing by showing the right screen first
+    const hasLocalAuth = await checkLocalAuthData();
 
-    if (isAuthenticated) {
-        await initializeAuthenticatedApp();
+    // First show the appropriate screen based on local data
+    if (hasLocalAuth) {
+        // User was previously authenticated - show app first
+        showApp();
     } else {
+        // No previous auth - show welcome screen first
         showWelcomeScreen();
     }
 
-    // Schedule background tasks with a delay to avoid overwhelming the browser
-    setTimeout(performBackgroundTasks, 2000);
+    // Initialize app with silent authentication as needed
+    try {
+        // Now check actual authentication status with the server
+        const isAuthenticated = await window.userService.authenticate(false);
+
+        if (isAuthenticated) {
+            // If authentication succeeds, ensure app is shown and initialize it
+            showApp();
+            await initializeAuthenticatedApp();
+        } else {
+            // If authentication fails, ensure welcome screen is shown
+            showWelcomeScreen();
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
+        // Show welcome screen on error
+        showWelcomeScreen();
+    }
 });
+
+/**
+ * Check if local authentication data exists
+ * @returns {Promise<boolean>} Whether local auth data exists
+ */
+async function checkLocalAuthData() {
+    return new Promise(resolve => {
+        chrome.storage.local.get('userAuthData', (result) => {
+            resolve(!!result.userAuthData);
+        });
+    });
+}
 
 /**
  * Set up all event listeners for the application
@@ -71,27 +103,43 @@ function setupEventListeners() {
     if (welcomeSignInButton) {
         welcomeSignInButton.addEventListener('click', async () => {
             try {
-                // Single authentication call - interactive mode
+                // Temporarily disable the button to prevent multiple clicks
+                welcomeSignInButton.disabled = true;
+                welcomeSignInButton.textContent = 'Signing in...';
+
+                // Authenticate with interactive mode
                 const isAuthenticated = await window.userService.authenticate(true);
 
                 if (isAuthenticated) {
-                    // App initialization will be handled by auth state listener
-                    // to avoid duplicate initialization
-                    console.log('Authentication successful via sign-in button');
+                    // If authentication succeeds, show app and initialize
+                    showApp();
+                    await initializeAuthenticatedApp();
+                } else {
+                    // If authentication fails, keep welcome screen shown
+                    welcomeSignInButton.disabled = false;
+                    welcomeSignInButton.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18"> Sign in with Google';
                 }
             } catch (error) {
                 console.error('Error during authentication:', error);
+                welcomeSignInButton.disabled = false;
+                welcomeSignInButton.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18"> Sign in with Google';
             }
         });
     }
 
-    // Add auth state listener - unified handling of auth state changes
+    // Add auth state listener
     window.userService.addAuthStateListener(async (authState) => {
-        console.log('Auth state changed:', authState.isAuthenticated);
-
         if (authState.isAuthenticated) {
-            await initializeAuthenticatedApp();
+            // User is authenticated
+            showApp();
+
+            // Only initialize app if we're coming from the welcome screen
+            // to avoid duplicate initialization
+            if (document.getElementById('welcome-screen').style.display !== 'none') {
+                await initializeAuthenticatedApp();
+            }
         } else {
+            // User is signed out
             showWelcomeScreen();
         }
 
@@ -101,7 +149,7 @@ function setupEventListeners() {
         }
     });
 
-    // Register utility buttons
+    // Initialize utility buttons
     initUtilityButtons();
 }
 
@@ -112,9 +160,6 @@ async function initializeAuthenticatedApp() {
     try {
         console.log('Initializing authenticated app...');
 
-        // Show the app UI first for better user experience
-        showApp();
-
         // Check for backup from Drive
         const backupRestored = await checkAndRestoreBackup();
         console.log('Backup check complete, restored:', backupRestored);
@@ -124,6 +169,9 @@ async function initializeAuthenticatedApp() {
 
         // Select first note or create default
         await selectFirstNoteOrCreateDefault();
+
+        // Schedule background tasks
+        setTimeout(performBackgroundTasks, 2000);
     } catch (error) {
         console.error('Error initializing authenticated app:', error);
     }
@@ -206,7 +254,6 @@ async function checkAndRestoreBackup() {
             }
         } else {
             console.log('No backup found on Drive');
-            // First-time user initialization handled in selectFirstNoteOrCreateDefault
             return false;
         }
     } catch (error) {
@@ -345,7 +392,22 @@ function initUtilityButtons() {
                 }
             } else {
                 // If not authenticated, try to authenticate
-                await window.userService.authenticate(true);
+                try {
+                    // Temporarily disable button to avoid multiple clicks
+                    accountButton.disabled = true;
+
+                    const isAuthenticated = await window.userService.authenticate(true);
+
+                    accountButton.disabled = false;
+
+                    if (!isAuthenticated) {
+                        showWelcomeScreen();
+                    }
+                } catch (error) {
+                    console.error('Authentication error:', error);
+                    accountButton.disabled = false;
+                    showWelcomeScreen();
+                }
             }
         });
     }

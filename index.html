@@ -13,8 +13,8 @@
 </head>
 
 <body>
-  <!-- Welcome screen (shown when user is not authenticated) -->
-  <div id="welcome-screen" class="welcome-container">
+  <!-- Welcome screen - initially hidden -->
+  <div id="welcome-screen" class="welcome-container" style="display: none;">
     <div class="welcome-content">
       <img src="flash-notes-icon.png" alt="Flash Notes" class="welcome-logo">
       <h1>Welcome to Flash Notes</h1>
@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <!-- Main app container (hidden until user is authenticated) -->
+  <!-- Main app container - initially hidden -->
   <div id="app-container" class="container" style="display: none;">
     <!-- Sidebar for notes list -->
     <div class="sidebar">
