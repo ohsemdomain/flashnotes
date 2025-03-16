@@ -45,51 +45,81 @@ Flash Notes features secure Google integration:
 3. **Manual backup:** You can trigger a backup at any time from the account menu
 4. **Privacy:** Your data is securely stored in your personal Google Drive account
 
+## Tag System
+
+Flash Notes includes a comprehensive tagging system to help organize your notes:
+
+1. **Custom tags:** Create tags with custom names and colors
+2. **Color-coding:** Assign colors to tags for visual organization
+3. **Filtering:** Search notes by tags
+4. **Tag management:** Edit and delete tags through the tag manager
+5. **Multi-tagging:** Apply multiple tags to a single note
+6. **Quick access:** See all available tags in the dropdown menu
+
 ## Project Structure
 
 The codebase is organized in a modular structure for better maintainability:
 
+```/
+├── app.js                  # Main application
+├── flash-notes-icon.png    # Extension icon
+├── index.html              # Main HTML file
+├── manifest.json           # Chrome extension manifest
+├── README.md               # Project documentation
+├── style.css               # Stylesheet
+├── /data
+│   └── database.js         # Database operations
+├── /helper
+│   ├── noteHelper.js       # Note helper functions
+│   └── tagHelper.js        # Tag helper functions
+├── /services
+│   ├── noteService.js      # Note-related business logic
+│   ├── tagService.js       # Tag-related business logic
+│   ├── userService.js      # User authentication and profile management
+│   └── driveService.js     # Google Drive integration
+└── /ui
+├── formatUI.js         # Formatting toolbar
+├── modal.js            # Modal management
+├── noteUI.js           # Note UI components
+├── tagUI.js            # Tag UI coordinator
+├── accountUI.js        # Account and backup UI management
+└── /tagComponent       # Tag UI components
+├── tagDropdownUI.js # Tag dropdown menu
+├── tagDisplayUI.js  # Tag display in notes
+├── tagEditorUI.js   # Tag creation/editing
+└── tagManagerUI.js  # Tag management
 ```
-/
-app.js                  # Main application
-flash-notes-icon.png    # Extension icon
-index.html              # Main HTML file
-manifest.json           # Chrome extension manifest
-README.md               # Project documentation
-style.css               # Stylesheet
-/data
-  database.js           # Database operations
-/helper
-  noteHelper.js         # Note helper functions
-  tagHelper.js          # Tag helper functions
-/services
-  noteService.js        # Note-related business logic
-  tagService.js         # Tag-related business logic
-  userService.js        # User authentication and profile management
-  driveService.js       # Google Drive integration
-/ui
-  formatUI.js           # Formatting toolbar
-  modal.js              # Modal management
-  noteUI.js             # Note UI components
-  tagUI.js              # Tag UI components
-  accountUI.js          # Account and backup UI management
-```
-
 ### Core Components
 
 - **Database (database.js)**: Handles data storage using Chrome's storage API
 - **Services Layer**:
   - **noteService.js**: Manages note operations
-  - **tagService.js**: Manages tag operations
+  - **tagService.js**: Manages tag operations, including caching
   - **userService.js**: Handles user authentication and profile management
   - **driveService.js**: Manages Google Drive operations
 - **UI Layer**:
   - **modal.js**: Handles modal dialogs
   - **noteUI.js**: Handles note list and editor UI
-  - **tagUI.js**: Manages tag-related UI
+  - **tagUI.js**: Coordinates tag-related UI components
+  - **tagComponent/**: Contains modular tag UI components
   - **formatUI.js**: Manages formatting toolbar
   - **accountUI.js**: Manages account and backup UI
 - **App (app.js)**: Initializes and coordinates the application
+
+## Architecture
+
+The Flash Notes extension follows a layered architecture pattern:
+
+1. **Data Layer** (database.js): Responsible for all data storage and retrieval
+2. **Service Layer** (services/*.js): Contains business logic and serves as an API for the UI
+3. **Helper Layer** (helper/*.js): Provides utility functions for common operations
+4. **UI Layer** (ui/*.js): Handles user interactions and rendering
+
+The tag system exemplifies this architecture with:
+- **Data Layer**: Tag storage in database.js
+- **Service Layer**: Tag operations and caching in tagService.js
+- **Helper Layer**: Tag utility functions in tagHelper.js
+- **UI Layer**: Tag interface components in ui/tagComponent/
 
 ## Technologies Used
 
@@ -113,8 +143,8 @@ Feel free to fork the repository and submit pull requests. To ensure a smooth co
 
 To add new features:
 
-1. For data-related features: Extend the appropriate service in the `/js/services` directory
-2. For UI components: Add new UI handlers in the `/js/ui` directory
+1. For data-related features: Extend the appropriate service in the `/services` directory
+2. For UI components: Add new UI handlers in the `/ui` directory
 3. For new types of data: Consider creating a new service file
 4. For global state changes: Update the event handlers in `app.js`
 
