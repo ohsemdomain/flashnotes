@@ -502,6 +502,7 @@ button#new-note:hover {
   cursor: pointer;
   font-size: 13px;
   transition: background-color 0.2s;
+  text-transform: uppercase;
 }
 
 .tag-item:hover {
@@ -542,6 +543,7 @@ button#new-note:hover {
   display: flex;
   align-items: center;
   line-height: 0.7;
+  text-transform: uppercase;
 }
 
 .tag span {
@@ -652,6 +654,7 @@ button#new-note:hover {
 .tag-info {
   display: flex;
   align-items: center;
+  text-transform: uppercase;
 }
 
 .tag-color-preview {
