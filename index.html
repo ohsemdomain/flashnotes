@@ -115,6 +115,17 @@
               <line x1="3" y1="18" x2="3.01" y2="18"></line>
             </svg>
           </button>
+          <button class="format-btn" id="format-numbered-list" title="Numbered List">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <line x1="10" y1="6" x2="21" y2="6"></line>
+              <line x1="10" y1="12" x2="21" y2="12"></line>
+              <line x1="10" y1="18" x2="21" y2="18"></line>
+              <path d="M4 6h1v4"></path>
+              <path d="M4 10h2"></path>
+              <path d="M6 18H4c0 0 0-1 2-2c0 0 0-1-2-1"></path>
+            </svg>
+          </button>
         </div>
         <div class="toolbar-right">
           <!-- Tag button -->
@@ -148,8 +159,8 @@
 
       <!-- Note content area with inline title -->
       <div class="note-content-wrapper">
-        <div class="title-area" contenteditable="true" id="note-title" placeholder="Title"></div>
-        <div class="note-content-area" contenteditable="true" id="note-content"></div>
+        <div class="title-area" contenteditable="true" id="note-title" placeholder="Title" spellcheck="false"></div>
+        <div class="note-content-area" contenteditable="true" id="note-content" spellcheck="false"></div>
       </div>
 
       <!-- Tags list and Save indicator -->

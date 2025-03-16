@@ -306,7 +306,7 @@ button#new-note:hover {
 }
 
 .format-btn.active {
-  background-color: #e6f2ff;
+  background-color: oklch(0.923 0.003 48.717);
   color: oklch(0.709 0.01 56.259);
 }
 
@@ -344,6 +344,38 @@ button#new-note:hover {
 /* Delete icon */
 .delete-icon {
   transition: color 0.2s ease;
+}
+
+/* Proper styling for lists in the note content */
+#note-content ul,
+#note-content ol {
+  padding-left: 20px;
+  /* Add proper indentation */
+  margin: 4px 0;
+}
+
+#note-content li {
+  margin-bottom: 1px;
+  position: relative;
+}
+
+/* Ensure bullets show correctly */
+#note-content ul>li {
+  list-style-type: disc;
+}
+
+/* Style for ordered lists */
+#note-content ol>li {
+  list-style-type: decimal;
+}
+
+#note-content ol ol>li {
+  list-style-type: lower-alpha;
+}
+
+/* For nested lists */
+#note-content ul ul>li {
+  list-style-type: circle;
 }
 
 /* ==========================================================================
