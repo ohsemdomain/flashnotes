@@ -91,11 +91,15 @@ class AccountUI {
         // Update account button in sidebar
         if (this.accountButton) {
             if (isAuthenticated && currentUser) {
-                // Show user picture
+                // Extract username from email (everything before the @)
+                const email = currentUser.email;
+                const username = email.split('@')[0];
+
+                // Show status dot and username
                 this.accountIcon.innerHTML = `
-                    <img src="${currentUser.picture}" alt="${currentUser.name}" class="user-picture">
+                    <span class="login-status-dot logged-in" title="Logged in"></span>
                 `;
-                this.accountStatus.textContent = 'Account';
+                this.accountStatus.textContent = username;
             } else {
                 // Show login icon
                 this.accountIcon.innerHTML = `
@@ -131,12 +135,29 @@ class AccountUI {
      */
     async login() {
         try {
+            // Show logging in state
+            if (this.accountIcon) {
+                this.accountIcon.innerHTML = `
+                    <span class="login-status-dot logging-in" title="Logging in..."></span>
+                `;
+                this.accountStatus.textContent = 'Logging in...';
+            }
+
             const token = await this.userService.authenticate(true);
             if (token) {
                 console.log('Successfully logged in');
             }
         } catch (error) {
             console.error('Login error:', error);
+
+            // Show error state
+            if (this.accountIcon) {
+                this.accountIcon.innerHTML = `
+                    <span class="login-status-dot error" title="Login failed"></span>
+                `;
+                this.accountStatus.textContent = 'Sign In';
+            }
+
             // Show error message to user
             alert('Failed to sign in. Please try again.');
         }
